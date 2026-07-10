@@ -68,7 +68,7 @@ function Store() {
     setCheckoutState("processing");
     await new Promise((r) => setTimeout(r, 1200));
     const { error } = await supabase.from("orders").insert({
-      user_id: user.id, items: cart as unknown as object, total, status: "confirmed",
+      user_id: user.id, items: cart as unknown as never, total, status: "confirmed",
     });
     if (error) { toast.error(error.message); setCheckoutState("idle"); return; }
     setCheckoutState("done");
