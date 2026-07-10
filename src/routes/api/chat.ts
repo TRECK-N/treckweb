@@ -48,7 +48,7 @@ export const Route = createFileRoute("/api/chat")({
         const result = streamText({
           model,
           system: "You are TreckWeb AI, a helpful, warm, and precise assistant for students. Use markdown, code blocks, and be concise unless asked for depth.",
-          messages: convertToModelMessages(messages),
+          messages: await convertToModelMessages(messages),
         });
 
         return result.toUIMessageStreamResponse({
