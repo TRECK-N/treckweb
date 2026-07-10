@@ -37,10 +37,18 @@ function GlobalChat() {
   const { data: messages = [] } = useQuery({
     queryKey: ["chat-messages"],
     queryFn: async () => {
-      const { data } = await supabase.from("chat_messages")
-        .select("*, profiles(display_name, avatar_url)")
-        .order("created_at", { ascending: false }).limit(100);
-      return (data ?? []).reverse() as ChatMsg[];
+      const { data: msgs } = await supabase.from("chat_messages")
+        .select("*").order("created_at", { ascending: false }).limit(100);
+      const rows = (msgs ?? []).reverse();
+      const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+      const { data: profs } = userIds.length
+        ? await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds)
+        : { data: [] as Array<{ id: string; display_name: string | null; avatar_url: string | null }> };
+      const map = new Map((profs ?? []).map((p) => [p.id, p]));
+      return rows.map((r) => ({
+        ...r,
+        profiles: map.get(r.user_id) ?? null,
+      })) as ChatMsg[];
     },
   });
 
