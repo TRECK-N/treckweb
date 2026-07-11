@@ -34,6 +34,19 @@ export const Route = createFileRoute("/api/chat")({
           .from("ai_threads").select("id").eq("id", threadId).eq("user_id", userId).maybeSingle();
         if (!thread) return new Response("Thread not found", { status: 404 });
 
+        // Enforce PRO for attachments
+        const last = messages[messages.length - 1];
+        const hasAttachment = last?.role === "user" && last.parts?.some((p: any) => p.type === "file");
+        if (hasAttachment) {
+          const { data: profile } = await supabase
+            .from("profiles").select("subscription_tier,pro_expires_at").eq("id", userId).maybeSingle();
+          const isPro = profile?.subscription_tier === "pro" &&
+            (!profile.pro_expires_at || new Date(profile.pro_expires_at).getTime() > Date.now());
+          if (!isPro) {
+            return new Response("Attachments require TRECK PRO. Upgrade in Membership to unlock file & camera uploads.", { status: 402 });
+          }
+        }
+
         // Persist the latest user message if it wasn't stored yet
         const last = messages[messages.length - 1];
         if (last?.role === "user") {
