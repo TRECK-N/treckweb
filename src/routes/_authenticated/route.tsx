@@ -46,6 +46,7 @@ function AuthLayout() {
       return data;
     },
   });
+  const { data: sub } = useSubscription(user.id);
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
@@ -64,7 +65,7 @@ function AuthLayout() {
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* Sidebar (desktop) */}
       <aside className="hidden lg:flex w-64 flex-col border-r border-border/60 bg-sidebar">
-        <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} />
+        <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
       </aside>
 
       {/* Mobile sidebar */}
