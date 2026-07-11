@@ -82,7 +82,7 @@ function AuthLayout() {
               transition={{ type: "spring", damping: 25 }}
               className="lg:hidden fixed left-0 top-0 bottom-0 w-64 z-50 bg-sidebar border-r border-border flex flex-col"
             >
-              <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} />
+              <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
             </motion.aside>
           </>
         )}
@@ -111,10 +111,10 @@ function AuthLayout() {
 }
 
 function SidebarInner({
-  pathname, displayName, initials, avatar, onSignOut, theme, toggleTheme,
+  pathname, displayName, initials, avatar, onSignOut, theme, toggleTheme, isPro,
 }: {
   pathname: string; displayName: string; initials: string; avatar?: string | null;
-  onSignOut: () => void; theme: string; toggleTheme: () => void;
+  onSignOut: () => void; theme: string; toggleTheme: () => void; isPro: boolean;
 }) {
   return (
     <div className="flex flex-col h-full p-4">
@@ -163,7 +163,10 @@ function SidebarInner({
             {avatar ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium truncate">{displayName}</div>
+            <div className="text-sm font-medium truncate flex items-center gap-1.5">
+              {displayName}
+              {isPro && <ProBadge />}
+            </div>
           </div>
           <button onClick={onSignOut} aria-label="Sign out" className="p-2 rounded-lg hover:bg-destructive/10 hover:text-destructive transition">
             <LogOut className="h-4 w-4" />
