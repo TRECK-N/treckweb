@@ -239,6 +239,9 @@ export type Database = {
           display_name: string | null
           id: string
           language: string | null
+          music_pack_unlocked: boolean
+          pro_expires_at: string | null
+          subscription_tier: string
           theme_color: string | null
           updated_at: string
           username: string | null
@@ -250,6 +253,9 @@ export type Database = {
           display_name?: string | null
           id: string
           language?: string | null
+          music_pack_unlocked?: boolean
+          pro_expires_at?: string | null
+          subscription_tier?: string
           theme_color?: string | null
           updated_at?: string
           username?: string | null
@@ -261,9 +267,42 @@ export type Database = {
           display_name?: string | null
           id?: string
           language?: string | null
+          music_pack_unlocked?: boolean
+          pro_expires_at?: string | null
+          subscription_tier?: string
           theme_color?: string | null
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          months: number | null
+          product_kind: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          months?: number | null
+          product_kind: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          months?: number | null
+          product_kind?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -316,7 +355,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_pro: { Args: { _user: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
