@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, X, Search, Sun, Moon,
+  Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, Sun, Moon, Crown,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ const NAV = [
   { to: "/chat", label: "Global Chat", icon: MessageCircle },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
   { to: "/store", label: "Store", icon: ShoppingBag },
+  { to: "/membership", label: "Membership", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
