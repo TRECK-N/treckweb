@@ -8,9 +8,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import {
-  Bot, Plus, Send, Copy, RefreshCw, Trash2, Menu, Loader2, Sparkles, MessageSquare, ChevronRight,
+  Bot, Plus, Send, Copy, RefreshCw, Trash2, Menu, Sparkles, MessageSquare,
+  Paperclip, Camera, X, Crown, FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/use-subscription";
+import { ProBadge } from "@/components/pro-badge";
 
 export const Route = createFileRoute("/_authenticated/ai/$threadId")({
   component: AiThread,
@@ -22,11 +25,16 @@ function AiThread() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [input, setInput] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: sub } = useSubscription(user.id);
+  const isPro = !!sub?.isPro;
 
-  // Load thread list
   const { data: threads = [] } = useQuery({
     queryKey: ["ai-threads", user.id],
     queryFn: async () => {
@@ -36,7 +44,6 @@ function AiThread() {
     },
   });
 
-  // Load current thread messages
   const { data: initialMessages } = useQuery({
     queryKey: ["ai-messages", threadId],
     queryFn: async () => {
@@ -73,18 +80,36 @@ function AiThread() {
 
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
-  const handleSend = async () => {
-    if (!input.trim() || status === "streaming" || status === "submitted") return;
-    const text = input.trim();
-    setInput("");
+  const pickFiles = (kind: "file" | "camera") => {
+    if (!isPro) { setUpsellOpen(true); return; }
+    (kind === "camera" ? cameraRef.current : fileRef.current)?.click();
+  };
 
-    // Auto-title first message
-    if (messages.length === 0) {
+  const onFilesSelected = (list: FileList | null) => {
+    if (!list) return;
+    const arr = Array.from(list);
+    const oversize = arr.find((f) => f.size > 20 * 1024 * 1024);
+    if (oversize) { toast.error(`${oversize.name} exceeds 20MB`); return; }
+    setPendingFiles((prev) => [...prev, ...arr].slice(0, 5));
+  };
+
+  const handleSend = async () => {
+    if ((!input.trim() && pendingFiles.length === 0) || status === "streaming" || status === "submitted") return;
+    if (pendingFiles.length && !isPro) { setUpsellOpen(true); return; }
+    const text = input.trim();
+    const filesToSend = pendingFiles;
+    setInput("");
+    setPendingFiles([]);
+
+    if (messages.length === 0 && text) {
       const title = text.slice(0, 60);
       await supabase.from("ai_threads").update({ title }).eq("id", threadId);
       qc.invalidateQueries({ queryKey: ["ai-threads", user.id] });
     }
-    await sendMessage({ text });
+
+    const dt = new DataTransfer();
+    filesToSend.forEach((f) => dt.items.add(f));
+    await sendMessage({ text: text || " ", files: filesToSend.length ? dt.files : undefined });
   };
 
   const newChat = async () => {
@@ -118,22 +143,21 @@ function AiThread() {
 
   return (
     <div className="flex h-[calc(100vh-56px)] lg:h-screen">
-      {/* Threads sidebar */}
       <ThreadsSidebar
         open={sidebarOpen} onClose={() => setSidebarOpen(false)}
         threads={threads} threadId={threadId}
         onNew={newChat} onDelete={deleteThread}
       />
 
-      {/* Chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
           <button className="lg:hidden p-2 rounded-lg hover:bg-accent" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-4 w-4" />
           </button>
           <Bot className="h-5 w-5 text-primary" />
-          <div className="font-semibold truncate flex-1">
+          <div className="font-semibold truncate flex-1 flex items-center gap-2">
             {threads.find((t) => t.id === threadId)?.title || "New chat"}
+            {isPro && <ProBadge />}
           </div>
           <button onClick={clearChat} className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-destructive" aria-label="Clear chat">
             <Trash2 className="h-4 w-4" />
@@ -148,7 +172,10 @@ function AiThread() {
                   <Sparkles className="h-6 w-6" />
                 </div>
                 <h2 className="mt-4 text-2xl font-bold">How can I help today?</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Ask anything — homework, explanations, code, ideas.</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Ask anything — homework, explanations, code, ideas.
+                  {isPro ? " Attach photos, PDFs, or snap a picture." : " Upgrade to PRO for photo & file analysis."}
+                </p>
                 <div className="mt-6 grid gap-2 sm:grid-cols-2 max-w-lg mx-auto">
                   {[
                     "Explain quadratic equations simply",
@@ -189,7 +216,61 @@ function AiThread() {
         {/* Composer */}
         <div className="border-t border-border/60 p-4">
           <div className="max-w-3xl mx-auto">
-            <div className="glass rounded-2xl p-2 flex items-end gap-2">
+            {pendingFiles.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {pendingFiles.map((f, i) => (
+                  <div key={i} className="glass rounded-xl p-1.5 pr-2 flex items-center gap-2 text-xs">
+                    {f.type.startsWith("image/") ? (
+                      <img src={URL.createObjectURL(f)} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center">
+                        <FileText className="h-4 w-4" />
+                      </div>
+                    )}
+                    <span className="max-w-[140px] truncate">{f.name}</span>
+                    <button
+                      onClick={() => setPendingFiles((p) => p.filter((_, idx) => idx !== i))}
+                      className="p-1 rounded-md hover:bg-destructive/10 hover:text-destructive"
+                      aria-label="Remove"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="glass rounded-2xl p-2 flex items-end gap-1">
+              <input
+                ref={fileRef} type="file" multiple hidden
+                accept="image/*,application/pdf,.doc,.docx,.txt,.md,.csv,.json"
+                onChange={(e) => { onFilesSelected(e.target.files); e.target.value = ""; }}
+              />
+              <input
+                ref={cameraRef} type="file" hidden
+                accept="image/*" capture="environment"
+                onChange={(e) => { onFilesSelected(e.target.files); e.target.value = ""; }}
+              />
+              <button
+                onClick={() => pickFiles("file")}
+                className={`h-9 w-9 rounded-xl grid place-items-center transition ${
+                  isPro ? "hover:bg-accent text-muted-foreground" : "text-muted-foreground/60"
+                }`}
+                aria-label="Attach file"
+                title={isPro ? "Attach files" : "PRO feature — upgrade to attach files"}
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => pickFiles("camera")}
+                className={`h-9 w-9 rounded-xl grid place-items-center transition ${
+                  isPro ? "hover:bg-accent text-muted-foreground" : "text-muted-foreground/60"
+                }`}
+                aria-label="Take a photo"
+                title={isPro ? "Take a photo" : "PRO feature — upgrade to use the camera"}
+              >
+                <Camera className="h-4 w-4" />
+              </button>
               <textarea
                 value={input} onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -207,7 +288,7 @@ function AiThread() {
                 </button>
               ) : (
                 <button
-                  onClick={handleSend} disabled={!input.trim()}
+                  onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}
                   className="h-9 w-9 rounded-xl bg-primary text-primary-foreground grid place-items-center hover:opacity-90 transition disabled:opacity-40 shadow-[var(--shadow-glow)]"
                   aria-label="Send"
                 >
@@ -221,6 +302,43 @@ function AiThread() {
           </div>
         </div>
       </div>
+
+      {/* Upsell modal */}
+      <AnimatePresence>
+        {upsellOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              onClick={() => setUpsellOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md glass rounded-3xl p-6 text-center"
+            >
+              <div className="mx-auto h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-primary grid place-items-center text-white shadow-[var(--shadow-glow)]">
+                <Crown className="h-6 w-6" />
+              </div>
+              <h3 className="mt-3 text-lg font-bold">Attachments are a PRO feature</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upload images, PDFs, notes, or snap a photo of your homework for the AI to analyze — all included with TRECK PRO.
+              </p>
+              <div className="mt-5 flex gap-2 justify-center">
+                <button onClick={() => setUpsellOpen(false)} className="rounded-xl px-4 py-2 text-sm hover:bg-accent">
+                  Not now
+                </button>
+                <Link
+                  to="/membership"
+                  onClick={() => setUpsellOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-primary px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-glow)]"
+                >
+                  <Crown className="h-4 w-4" /> Get TRECK PRO
+                </Link>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -230,6 +348,7 @@ function MessageBubble({
 }: { message: UIMessage; onRegenerate?: () => void }) {
   const isUser = message.role === "user";
   const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+  const files = message.parts.filter((p: any) => p.type === "file") as any[];
   const copy = () => {
     navigator.clipboard.writeText(text);
     toast.success("Copied");
@@ -245,6 +364,23 @@ function MessageBubble({
         {isUser ? "You" : <Bot className="h-4 w-4" />}
       </div>
       <div className={`min-w-0 max-w-[calc(100%-3rem)] ${isUser ? "text-right" : ""}`}>
+        {files.length > 0 && (
+          <div className={`mb-1.5 flex flex-wrap gap-2 ${isUser ? "justify-end" : ""}`}>
+            {files.map((f, i) => {
+              const url = f.url || f.data;
+              const mime = f.mediaType || f.mimeType || "";
+              if (mime.startsWith("image/") && url) {
+                return <img key={i} src={url} alt={f.filename || "attachment"} className="max-h-56 rounded-xl border border-border" />;
+              }
+              return (
+                <div key={i} className="glass rounded-xl px-3 py-2 flex items-center gap-2 text-xs">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="truncate max-w-[180px]">{f.filename || "attachment"}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div className={`inline-block text-left ${
           isUser
             ? "bg-primary text-primary-foreground rounded-2xl px-4 py-2.5"

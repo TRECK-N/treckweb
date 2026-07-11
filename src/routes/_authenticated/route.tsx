@@ -2,11 +2,13 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, X, Search, Sun, Moon,
+  Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, Sun, Moon, Crown,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
+import { useSubscription } from "@/hooks/use-subscription";
+import { ProBadge } from "@/components/pro-badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -25,6 +27,7 @@ const NAV = [
   { to: "/chat", label: "Global Chat", icon: MessageCircle },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
   { to: "/store", label: "Store", icon: ShoppingBag },
+  { to: "/membership", label: "Membership", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -43,6 +46,7 @@ function AuthLayout() {
       return data;
     },
   });
+  const { data: sub } = useSubscription(user.id);
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
@@ -61,7 +65,7 @@ function AuthLayout() {
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* Sidebar (desktop) */}
       <aside className="hidden lg:flex w-64 flex-col border-r border-border/60 bg-sidebar">
-        <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} />
+        <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
       </aside>
 
       {/* Mobile sidebar */}
@@ -78,7 +82,7 @@ function AuthLayout() {
               transition={{ type: "spring", damping: 25 }}
               className="lg:hidden fixed left-0 top-0 bottom-0 w-64 z-50 bg-sidebar border-r border-border flex flex-col"
             >
-              <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} />
+              <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
             </motion.aside>
           </>
         )}
@@ -107,10 +111,10 @@ function AuthLayout() {
 }
 
 function SidebarInner({
-  pathname, displayName, initials, avatar, onSignOut, theme, toggleTheme,
+  pathname, displayName, initials, avatar, onSignOut, theme, toggleTheme, isPro,
 }: {
   pathname: string; displayName: string; initials: string; avatar?: string | null;
-  onSignOut: () => void; theme: string; toggleTheme: () => void;
+  onSignOut: () => void; theme: string; toggleTheme: () => void; isPro: boolean;
 }) {
   return (
     <div className="flex flex-col h-full p-4">
@@ -159,7 +163,10 @@ function SidebarInner({
             {avatar ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium truncate">{displayName}</div>
+            <div className="text-sm font-medium truncate flex items-center gap-1.5">
+              {displayName}
+              {isPro && <ProBadge />}
+            </div>
           </div>
           <button onClick={onSignOut} aria-label="Sign out" className="p-2 rounded-lg hover:bg-destructive/10 hover:text-destructive transition">
             <LogOut className="h-4 w-4" />
