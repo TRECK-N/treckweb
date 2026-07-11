@@ -48,7 +48,6 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         // Persist the latest user message if it wasn't stored yet
-        const last = messages[messages.length - 1];
         if (last?.role === "user") {
           await supabase.from("ai_messages").insert({
             thread_id: threadId, user_id: userId, role: "user", content: last as unknown as object,
