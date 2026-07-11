@@ -7,6 +7,8 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
+import { useSubscription } from "@/hooks/use-subscription";
+import { ProBadge } from "@/components/pro-badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
