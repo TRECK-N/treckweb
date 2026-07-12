@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useParams, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
