@@ -166,6 +166,19 @@ function AiThread() {
             {threads.find((t) => t.id === threadId)?.title || "New chat"}
             {isPro && <ProBadge />}
           </div>
+          <div
+            className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+              limitReached
+                ? "bg-destructive/10 text-destructive"
+                : remaining <= Math.max(1, Math.floor(limit / 4))
+                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                : "bg-primary/10 text-primary"
+            }`}
+            title={`${remaining} of ${limit} daily prompts left${isPro ? "" : " — upgrade for more"}`}
+          >
+            <Zap className="h-3 w-3" />
+            {remaining}/{limit} today
+          </div>
           <button onClick={clearChat} className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-destructive" aria-label="Clear chat">
             <Trash2 className="h-4 w-4" />
           </button>
@@ -247,45 +260,32 @@ function AiThread() {
               </div>
             )}
 
-            <div className="glass rounded-2xl p-2 flex items-end gap-1">
+            <div className={`glass rounded-2xl p-2 flex items-end gap-1 ${limitReached ? "opacity-70" : ""}`}>
               <input
                 ref={fileRef} type="file" multiple hidden
                 accept="image/*,application/pdf,.doc,.docx,.txt,.md,.csv,.json"
                 onChange={(e) => { onFilesSelected(e.target.files); e.target.value = ""; }}
               />
-              <input
-                ref={cameraRef} type="file" hidden
-                accept="image/*" capture="environment"
-                onChange={(e) => { onFilesSelected(e.target.files); e.target.value = ""; }}
-              />
               <button
-                onClick={() => pickFiles("file")}
+                onClick={openFilePicker}
+                disabled={limitReached}
                 className={`h-9 w-9 rounded-xl grid place-items-center transition ${
                   isPro ? "hover:bg-accent text-muted-foreground" : "text-muted-foreground/60"
-                }`}
+                } disabled:opacity-40`}
                 aria-label="Attach file"
-                title={isPro ? "Attach files" : "PRO feature — upgrade to attach files"}
+                title={isPro ? "Attach files or take a photo" : "PRO feature — upgrade to attach files"}
               >
                 <Paperclip className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => pickFiles("camera")}
-                className={`h-9 w-9 rounded-xl grid place-items-center transition ${
-                  isPro ? "hover:bg-accent text-muted-foreground" : "text-muted-foreground/60"
-                }`}
-                aria-label="Take a photo"
-                title={isPro ? "Take a photo" : "PRO feature — upgrade to use the camera"}
-              >
-                <Camera className="h-4 w-4" />
               </button>
               <textarea
                 value={input} onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
                 }}
-                placeholder="Message TreckWeb AI…"
+                placeholder={limitReached ? "Daily limit reached — resets tomorrow" : "Message TreckWeb AI…"}
                 rows={1}
-                className="flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none max-h-40"
+                disabled={limitReached}
+                className="flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none max-h-40 disabled:cursor-not-allowed"
                 style={{ minHeight: "40px" }}
                 autoFocus
               />
@@ -295,7 +295,7 @@ function AiThread() {
                 </button>
               ) : (
                 <button
-                  onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}
+                  onClick={handleSend} disabled={limitReached || (!input.trim() && pendingFiles.length === 0)}
                   className="h-9 w-9 rounded-xl bg-primary text-primary-foreground grid place-items-center hover:opacity-90 transition disabled:opacity-40 shadow-[var(--shadow-glow)]"
                   aria-label="Send"
                 >
@@ -303,9 +303,20 @@ function AiThread() {
                 </button>
               )}
             </div>
-            <p className="text-[10px] text-muted-foreground text-center mt-2">
-              Powered by Lovable AI — Gemini 3 Flash
-            </p>
+            {limitReached ? (
+              <div className="mt-2 flex items-center justify-center gap-2 text-[11px]">
+                <span className="text-destructive font-medium">Daily limit reached ({limit}/{limit}).</span>
+                {!isPro && (
+                  <Link to="/membership" className="inline-flex items-center gap-1 text-primary font-semibold hover:underline">
+                    <Crown className="h-3 w-3" /> Upgrade to PRO for more
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="text-[10px] text-muted-foreground text-center mt-2">
+                {remaining} of {limit} daily prompts left · Powered by Lovable AI — Gemini 3 Flash
+              </p>
+            )}
           </div>
         </div>
       </div>
