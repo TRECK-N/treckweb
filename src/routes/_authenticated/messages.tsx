@@ -118,6 +118,3 @@ export function MessagesEmpty() {
     </div>
   );
 }
-
-// Also mount used-in-child imports so vite doesn't drop them
-export { useParams };
