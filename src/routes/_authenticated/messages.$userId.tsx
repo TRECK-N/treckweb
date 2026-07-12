@@ -1,0 +1,202 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Send, Smile, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfiles } from "@/hooks/use-social";
+import { SocialAvatar } from "@/components/social-avatar";
+import { formatDistanceToNow } from "date-fns";
+
+export const Route = createFileRoute("/_authenticated/messages/$userId")({
+  component: DMConversation,
+});
+
+const EMOJIS = ["😀", "😂", "😍", "🔥", "🎉", "👍", "❤️", "🚀", "💯", "🙌", "🤔", "😎"];
+
+interface DM {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  content: string;
+  created_at: string;
+  edited_at: string | null;
+}
+
+function DMConversation() {
+  const { user } = Route.useRouteContext();
+  const { userId: otherId } = Route.useParams();
+  const qc = useQueryClient();
+  const [input, setInput] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { data: profileMap = new Map() } = useProfiles([otherId]);
+  const other = profileMap.get(otherId);
+
+  const queryKey = ["dm", user.id, otherId];
+  const { data: messages = [] } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("direct_messages")
+        .select("*")
+        .or(
+          `and(sender_id.eq.${user.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${user.id})`,
+        )
+        .order("created_at", { ascending: true })
+        .limit(200);
+      return (data ?? []) as DM[];
+    },
+  });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`dm-${[user.id, otherId].sort().join("-")}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "direct_messages" },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as DM;
+          const involves =
+            (row.sender_id === user.id && row.recipient_id === otherId) ||
+            (row.sender_id === otherId && row.recipient_id === user.id);
+          if (!involves) return;
+          if (payload.eventType === "INSERT") {
+            qc.setQueryData<DM[]>(queryKey, (prev = []) =>
+              prev.some((m) => m.id === row.id) ? prev : [...prev, row],
+            );
+          } else if (payload.eventType === "UPDATE") {
+            qc.setQueryData<DM[]>(queryKey, (prev = []) =>
+              prev.map((m) => (m.id === row.id ? { ...m, ...row } : m)),
+            );
+          } else if (payload.eventType === "DELETE") {
+            qc.setQueryData<DM[]>(queryKey, (prev = []) => prev.filter((m) => m.id !== row.id));
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id, otherId]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
+
+  const send = async () => {
+    if (!input.trim()) return;
+    const text = input.trim();
+    setInput("");
+    const { error } = await supabase.from("direct_messages").insert({
+      sender_id: user.id, recipient_id: otherId, content: text,
+    });
+    if (error) toast.error(error.message);
+  };
+
+  const saveEdit = async (id: string) => {
+    if (!editText.trim()) return;
+    await supabase.from("direct_messages").update({ content: editText, edited_at: new Date().toISOString() }).eq("id", id);
+    setEditingId(null);
+  };
+
+  const del = async (id: string) => {
+    if (!confirm("Delete this message?")) return;
+    await supabase.from("direct_messages").delete().eq("id", id);
+  };
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 h-full">
+      <header className="border-b border-border/60 px-4 lg:px-6 py-3 flex items-center gap-3 glass">
+        <Link to="/messages" className="md:hidden p-2 rounded-lg hover:bg-accent" aria-label="Back">
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <SocialAvatar profile={other} size={38} />
+        <div className="min-w-0">
+          <div className="font-semibold text-sm truncate">{other?.display_name || "User"}</div>
+          <div className="text-xs text-muted-foreground truncate">@{other?.username}</div>
+        </div>
+      </header>
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-3">
+        {messages.map((m) => {
+          const isOwn = m.sender_id === user.id;
+          const p = isOwn ? null : other;
+          const editing = editingId === m.id;
+          return (
+            <motion.div
+              key={m.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`group flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}
+            >
+              <SocialAvatar profile={p} size={36} />
+              <div className={`max-w-[75%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}>
+                <div className={`flex items-center gap-2 text-[11px] text-muted-foreground mb-1 ${isOwn ? "flex-row-reverse" : ""}`}>
+                  <span>{formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}</span>
+                  {m.edited_at && <span className="italic">(edited)</span>}
+                </div>
+                {editing ? (
+                  <div className="flex gap-2">
+                    <input value={editText} onChange={(e) => setEditText(e.target.value)}
+                      className="rounded-xl border border-border bg-background/40 px-3 py-2 text-sm outline-none focus:border-primary" autoFocus />
+                    <button onClick={() => saveEdit(m.id)} className="text-xs text-primary hover:underline">Save</button>
+                    <button onClick={() => setEditingId(null)} className="text-xs text-muted-foreground hover:underline">Cancel</button>
+                  </div>
+                ) : (
+                  <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+                    isOwn ? "bg-primary text-primary-foreground" : "glass"
+                  }`}>{m.content}</div>
+                )}
+                {isOwn && !editing && (
+                  <div className="mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                    <button onClick={() => { setEditingId(m.id); setEditText(m.content); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>
+                    <button onClick={() => del(m.id)} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
+        {messages.length === 0 && (
+          <div className="text-center text-sm text-muted-foreground py-10">
+            No messages yet — say hi!
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-border/60 p-4">
+        <div className="max-w-3xl mx-auto relative">
+          {showEmoji && (
+            <div className="absolute bottom-14 left-0 glass rounded-2xl p-2 grid grid-cols-6 gap-1 z-10">
+              {EMOJIS.map((e) => (
+                <button key={e} className="text-xl hover:bg-accent rounded-lg p-1" onClick={() => { setInput((p) => p + e); setShowEmoji(false); }}>{e}</button>
+              ))}
+            </div>
+          )}
+          <div className="glass rounded-2xl flex items-center gap-1 p-1.5">
+            <button onClick={() => setShowEmoji((s) => !s)} className="p-2 rounded-lg hover:bg-accent text-muted-foreground" aria-label="Emoji">
+              <Smile className="h-4 w-4" />
+            </button>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); send(); } }}
+              placeholder="Message…"
+              className="flex-1 bg-transparent px-2 py-2 text-sm outline-none"
+              autoFocus
+            />
+            <button onClick={send} disabled={!input.trim()}
+              className="h-9 w-9 rounded-xl bg-primary text-primary-foreground grid place-items-center hover:opacity-90 transition disabled:opacity-40 shadow-[var(--shadow-glow)]"
+              aria-label="Send">
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
