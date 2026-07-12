@@ -42,8 +42,10 @@ function Store() {
             </p>
 
             <div className="mt-5 flex items-baseline gap-2">
-              <span className="text-4xl font-bold">$8</span>
+              <span className="text-4xl font-bold">$4</span>
               <span className="text-sm text-muted-foreground">/ month</span>
+              <span className="ml-2 text-xs line-through text-muted-foreground">$8</span>
+              <span className="text-[10px] font-bold uppercase text-primary">50% off</span>
             </div>
 
             <ul className="mt-5 space-y-2 text-sm">
