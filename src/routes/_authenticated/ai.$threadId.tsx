@@ -82,9 +82,9 @@ function AiThread() {
 
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
-  const pickFiles = (kind: "file" | "camera") => {
+  const openFilePicker = () => {
     if (!isPro) { setUpsellOpen(true); return; }
-    (kind === "camera" ? cameraRef.current : fileRef.current)?.click();
+    fileRef.current?.click();
   };
 
   const onFilesSelected = (list: FileList | null) => {
@@ -97,6 +97,10 @@ function AiThread() {
 
   const handleSend = async () => {
     if ((!input.trim() && pendingFiles.length === 0) || status === "streaming" || status === "submitted") return;
+    if (limitReached) {
+      toast.error(isPro ? "Daily PRO limit reached — resets tomorrow." : "Daily limit reached. Upgrade to TRECK PRO for more.");
+      return;
+    }
     if (pendingFiles.length && !isPro) { setUpsellOpen(true); return; }
     const text = input.trim();
     const filesToSend = pendingFiles;
@@ -112,6 +116,7 @@ function AiThread() {
     const dt = new DataTransfer();
     filesToSend.forEach((f) => dt.items.add(f));
     await sendMessage({ text: text || " ", files: filesToSend.length ? dt.files : undefined });
+    qc.invalidateQueries({ queryKey: ["ai-daily-usage", user.id, isPro] });
   };
 
   const newChat = async () => {
