@@ -34,16 +34,37 @@ export const Route = createFileRoute("/api/chat")({
           .from("ai_threads").select("id").eq("id", threadId).eq("user_id", userId).maybeSingle();
         if (!thread) return new Response("Thread not found", { status: 404 });
 
+        // Fetch profile once for PRO + daily limit
+        const { data: profile } = await supabase
+          .from("profiles").select("subscription_tier,pro_expires_at").eq("id", userId).maybeSingle();
+        const isPro = profile?.subscription_tier === "pro" &&
+          (!profile.pro_expires_at || new Date(profile.pro_expires_at).getTime() > Date.now());
+
         // Enforce PRO for attachments
         const last = messages[messages.length - 1];
         const hasAttachment = last?.role === "user" && last.parts?.some((p: any) => p.type === "file");
-        if (hasAttachment) {
-          const { data: profile } = await supabase
-            .from("profiles").select("subscription_tier,pro_expires_at").eq("id", userId).maybeSingle();
-          const isPro = profile?.subscription_tier === "pro" &&
-            (!profile.pro_expires_at || new Date(profile.pro_expires_at).getTime() > Date.now());
-          if (!isPro) {
-            return new Response("Attachments require TRECK PRO. Upgrade in Membership to unlock file & camera uploads.", { status: 402 });
+        if (hasAttachment && !isPro) {
+          return new Response("Attachments require TRECK PRO. Upgrade in Membership to unlock file uploads.", { status: 402 });
+        }
+
+        // Daily prompt limit (resets at local midnight UTC)
+        if (last?.role === "user") {
+          const dailyLimit = isPro ? 10 : 5;
+          const startOfDay = new Date();
+          startOfDay.setUTCHours(0, 0, 0, 0);
+          const { count } = await supabase
+            .from("ai_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .eq("role", "user")
+            .gte("created_at", startOfDay.toISOString());
+          if ((count ?? 0) >= dailyLimit) {
+            return new Response(
+              isPro
+                ? `Daily PRO limit reached (${dailyLimit}/day). Resets tomorrow.`
+                : `Daily limit reached (${dailyLimit}/day). Upgrade to TRECK PRO for ${10}/day.`,
+              { status: 429 },
+            );
           }
         }
 

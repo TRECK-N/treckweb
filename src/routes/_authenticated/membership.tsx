@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/membership")({
   component: Membership,
 });
 
-const PRO_MONTHLY = 8;
+const PRO_MONTHLY = 4;
 const PLANS: { months: number; label: string; save?: string }[] = [
   { months: 1, label: "1 month" },
   { months: 3, label: "3 months", save: "Save 10%" },
