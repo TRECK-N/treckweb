@@ -9,10 +9,11 @@ import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import {
   Bot, Plus, Send, Copy, RefreshCw, Trash2, Menu, Sparkles, MessageSquare,
-  Paperclip, Camera, X, Crown, FileText,
+  Paperclip, X, Crown, FileText, Zap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useDailyAiUsage } from "@/hooks/use-daily-ai-usage";
 import { ProBadge } from "@/components/pro-badge";
 
 export const Route = createFileRoute("/_authenticated/ai/$threadId")({
