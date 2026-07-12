@@ -31,10 +31,11 @@ function AiThread() {
   const [upsellOpen, setUpsellOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: sub } = useSubscription(user.id);
   const isPro = !!sub?.isPro;
+  const { remaining, limit } = useDailyAiUsage(user.id, isPro);
+  const limitReached = remaining <= 0;
 
   const { data: threads = [] } = useQuery({
     queryKey: ["ai-threads", user.id],
