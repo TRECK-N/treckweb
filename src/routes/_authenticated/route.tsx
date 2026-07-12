@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, Sun, Moon, Crown,
+  Users, Send, UserPlus,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,9 @@ export const Route = createFileRoute("/_authenticated")({
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/ai", label: "AI Assistant", icon: Bot },
+  { to: "/friends", label: "Friends", icon: UserPlus },
+  { to: "/messages", label: "Messages", icon: Send },
+  { to: "/groups", label: "Groups", icon: Users },
   { to: "/chat", label: "Global Chat", icon: MessageCircle },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
   { to: "/store", label: "Store", icon: ShoppingBag },
