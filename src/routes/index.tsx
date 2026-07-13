@@ -70,9 +70,9 @@ function Landing() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: Bot, title: "AI Assistant", desc: "Streaming chat with markdown, code blocks, threads and history." },
-            { icon: MessageCircle, title: "Global Chat", desc: "Real-time chat with every online user. Emoji, edits, typing." },
+            { icon: MessageCircle, title: "Chat", desc: "Global rooms, private DMs and group chats — attachments & voice notes." },
             { icon: FolderOpen, title: "Workspace", desc: "Folders, notes, files & checklists. Auto-saved, always yours." },
-            { icon: ShoppingBag, title: "Store", desc: "Sell products with a beautiful cart. Stripe-ready checkout." },
+            { icon: Music, title: "Music", desc: "A calm library to focus. Unlock the full pack in one tap." },
           ].map((f, i) => (
             <motion.div
               key={f.title}
