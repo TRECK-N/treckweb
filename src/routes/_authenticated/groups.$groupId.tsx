@@ -219,9 +219,18 @@ function GroupConversation() {
             No messages yet. Start the conversation!
           </div>
         )}
+
+        <AnimatePresence>
+          {typing.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="text-xs text-muted-foreground italic pl-1">
+              {typing.map((t) => t.name).join(", ")} {typing.length === 1 ? "is" : "are"} typing…
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <ChatComposer userId={user.id} placeholder={`Message ${group?.name || "group"}…`} onSend={send} />
+      <ChatComposer userId={user.id} placeholder={`Message ${group?.name || "group"}…`} onSend={send} onTyping={broadcast} />
 
       {showMembers && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowMembers(false)}>
