@@ -3,17 +3,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Send, Smile, Pencil, Trash2, ArrowLeft, Users, UserPlus, LogOut, Crown, Shield, X } from "lucide-react";
+import { Pencil, Trash2, ArrowLeft, Users, UserPlus, LogOut, Crown, Shield, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfiles, useFriendships, initialsFor } from "@/hooks/use-social";
 import { SocialAvatar } from "@/components/social-avatar";
 import { formatDistanceToNow } from "date-fns";
+import { ChatComposer } from "@/components/chat-composer";
+import { MessageAttachments } from "@/components/message-attachments";
+import type { ChatAttachment } from "@/lib/chat-attachments";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
   component: GroupConversation,
 });
-
-const EMOJIS = ["😀", "😂", "😍", "🔥", "🎉", "👍", "❤️", "🚀", "💯", "🙌", "🤔", "😎"];
 
 interface GroupMsg {
   id: string;
