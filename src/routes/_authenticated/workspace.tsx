@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  FolderPlus, Folder, Plus, Pin, Trash2, Search, FileText, Upload, File as FileIcon, Loader2, Pencil,
+  FolderPlus, Folder, FolderOpen, Plus, Pin, Trash2, Search, Upload, File as FileIcon, Pencil,
+  ChevronRight, ChevronDown, Home, ArrowRightLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,10 +15,22 @@ export const Route = createFileRoute("/_authenticated/workspace")({
 
 const COLORS = ["violet", "sky", "emerald", "amber", "rose", "cyan"];
 
+interface FolderRow {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string | null;
+  icon: string | null;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 function Workspace() {
   const { user } = Route.useRouteContext();
   const qc = useQueryClient();
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
 
   const { data: folders = [] } = useQuery({
@@ -25,13 +38,26 @@ function Workspace() {
     queryFn: async () => {
       const { data } = await supabase.from("folders")
         .select("*").eq("user_id", user.id).order("created_at");
-      return data ?? [];
+      return (data ?? []) as FolderRow[];
     },
   });
 
+  // Tree structure
+  const childrenMap = useMemo(() => {
+    const m = new Map<string | null, FolderRow[]>();
+    for (const f of folders) {
+      const k = f.parent_id ?? null;
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(f);
+    }
+    return m;
+  }, [folders]);
+
+  const rootFolders = childrenMap.get(null) ?? [];
+
   useEffect(() => {
-    if (!activeFolder && folders[0]) setActiveFolder(folders[0].id);
-  }, [folders, activeFolder]);
+    if (!activeFolder && rootFolders[0]) setActiveFolder(rootFolders[0].id);
+  }, [rootFolders, activeFolder]);
 
   const { data: notes = [] } = useQuery({
     queryKey: ["notes", user.id, activeFolder],
@@ -57,13 +83,16 @@ function Workspace() {
     enabled: !!activeFolder,
   });
 
-  const createFolder = async () => {
-    const name = prompt("Folder name?");
+  const createFolder = async (parentId: string | null) => {
+    const name = prompt(parentId ? "Subfolder name?" : "Folder name?");
     if (!name?.trim()) return;
     const color = COLORS[folders.length % COLORS.length];
-    const { data, error } = await supabase.from("folders").insert({ user_id: user.id, name, color }).select().single();
+    const { data, error } = await supabase.from("folders")
+      .insert({ user_id: user.id, name, color, parent_id: parentId })
+      .select().single();
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["folders", user.id] });
+    if (parentId) setExpanded((s) => new Set([...s, parentId]));
     if (data) setActiveFolder(data.id);
   };
 
@@ -75,10 +104,24 @@ function Workspace() {
   };
 
   const deleteFolder = async (id: string) => {
-    if (!confirm("Delete folder and everything inside?")) return;
+    if (!confirm("Delete folder and everything inside (including subfolders)?")) return;
     await supabase.from("folders").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["folders", user.id] });
     if (activeFolder === id) setActiveFolder(null);
+  };
+
+  const moveItem = async (kind: "note" | "file", id: string) => {
+    const options = folders.map((f) => `${f.id}: ${folderPath(f, folders)}`).join("\n");
+    const target = prompt(`Move to folder — paste ID:\n${options}`);
+    if (!target?.trim()) return;
+    const clean = target.split(":")[0].trim();
+    const exists = folders.some((f) => f.id === clean);
+    if (!exists) return toast.error("Folder not found");
+    const table = kind === "note" ? "notes" : "workspace_files";
+    await supabase.from(table).update({ folder_id: clean }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    toast.success("Moved");
   };
 
   const createNote = async () => {
@@ -130,29 +173,57 @@ function Workspace() {
   const filteredNotes = notes.filter((n) => n.title.toLowerCase().includes(search.toLowerCase()) || (n.content ?? "").toLowerCase().includes(search.toLowerCase()));
   const filteredFiles = files.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()));
   const activeMeta = folders.find((f) => f.id === activeFolder);
+  const breadcrumb = activeMeta ? folderAncestors(activeMeta, folders) : [];
+
+  const toggleExpand = (id: string) => setExpanded((s) => {
+    const n = new Set(s);
+    if (n.has(id)) n.delete(id); else n.add(id);
+    return n;
+  });
+
+  const renderTree = (parentId: string | null, depth: number): React.ReactNode => {
+    const items = childrenMap.get(parentId) ?? [];
+    return items.map((f) => {
+      const kids = childrenMap.get(f.id) ?? [];
+      const isOpen = expanded.has(f.id);
+      const isActive = activeFolder === f.id;
+      return (
+        <div key={f.id}>
+          <div className={`group flex items-center rounded-lg transition ${isActive ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"}`}
+            style={{ paddingLeft: depth * 12 }}>
+            <button onClick={() => kids.length && toggleExpand(f.id)}
+              className="h-6 w-6 grid place-items-center text-muted-foreground shrink-0">
+              {kids.length ? (isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />) : <span className="h-3.5 w-3.5" />}
+            </button>
+            <button onClick={() => setActiveFolder(f.id)} className="flex-1 flex items-center gap-2 py-1.5 text-sm min-w-0">
+              {isActive ? <FolderOpen className="h-4 w-4 text-primary shrink-0" /> : <Folder className="h-4 w-4 text-primary shrink-0" />}
+              <span className="truncate">{f.name}</span>
+            </button>
+            <div className="flex opacity-0 group-hover:opacity-100 transition">
+              <button onClick={() => createFolder(f.id)} className="p-1 hover:text-primary" aria-label="Add subfolder" title="Add subfolder"><Plus className="h-3 w-3" /></button>
+              <button onClick={() => renameFolder(f.id, f.name)} className="p-1 hover:text-primary" aria-label="Rename"><Pencil className="h-3 w-3" /></button>
+              <button onClick={() => deleteFolder(f.id)} className="p-1 hover:text-destructive" aria-label="Delete"><Trash2 className="h-3 w-3" /></button>
+            </div>
+          </div>
+          {isOpen && kids.length > 0 && renderTree(f.id, depth + 1)}
+        </div>
+      );
+    });
+  };
 
   return (
     <div className="flex h-[calc(100vh-56px)] lg:h-screen">
-      <aside className="hidden md:flex w-64 flex-col border-r border-border/60 bg-sidebar p-4">
+      <aside className="hidden md:flex w-72 flex-col border-r border-border/60 bg-sidebar p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold">Workspace</h2>
-          <button onClick={createFolder} className="p-1.5 rounded-lg hover:bg-accent" aria-label="New folder">
+          <button onClick={() => createFolder(null)} className="p-1.5 rounded-lg hover:bg-accent" aria-label="New folder">
             <FolderPlus className="h-4 w-4" />
           </button>
         </div>
-        <div className="space-y-1 flex-1 overflow-y-auto">
-          {folders.map((f) => (
-            <div key={f.id} className={`group flex items-center rounded-lg ${activeFolder === f.id ? "bg-sidebar-accent" : ""}`}>
-              <button onClick={() => setActiveFolder(f.id)} className="flex-1 flex items-center gap-2 px-2 py-2 text-sm">
-                <Folder className="h-4 w-4 text-primary" />
-                <span className="truncate">{f.name}</span>
-              </button>
-              <button onClick={() => renameFolder(f.id, f.name)} className="p-1.5 opacity-0 group-hover:opacity-100 hover:text-primary" aria-label="Rename"><Pencil className="h-3 w-3" /></button>
-              <button onClick={() => deleteFolder(f.id)} className="p-1.5 opacity-0 group-hover:opacity-100 hover:text-destructive" aria-label="Delete"><Trash2 className="h-3 w-3" /></button>
-            </div>
-          ))}
+        <div className="space-y-0.5 flex-1 overflow-y-auto">
+          {renderTree(null, 0)}
           {folders.length === 0 && (
-            <button onClick={createFolder} className="w-full text-left glass rounded-xl p-3 text-sm text-muted-foreground hover:text-foreground">
+            <button onClick={() => createFolder(null)} className="w-full text-left glass rounded-xl p-3 text-sm text-muted-foreground hover:text-foreground">
               <FolderPlus className="h-4 w-4 inline mr-2" />Create your first folder
             </button>
           )}
@@ -162,9 +233,26 @@ function Workspace() {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="border-b border-border/60 px-6 py-4 flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <h1 className="font-bold text-lg truncate">{activeMeta?.name ?? "Workspace"}</h1>
-            <p className="text-xs text-muted-foreground">Notes, files, all in one place.</p>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+              <Home className="h-3 w-3" />
+              {breadcrumb.map((b, i) => (
+                <span key={b.id} className="inline-flex items-center gap-1">
+                  <ChevronRight className="h-3 w-3" />
+                  <button onClick={() => setActiveFolder(b.id)}
+                    className={i === breadcrumb.length - 1 ? "text-foreground font-medium" : "hover:text-foreground"}>
+                    {b.name}
+                  </button>
+                </span>
+              ))}
+            </div>
+            <h1 className="font-bold text-lg truncate mt-0.5">{activeMeta?.name ?? "Workspace"}</h1>
           </div>
+          {activeFolder && (
+            <button onClick={() => createFolder(activeFolder)}
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs rounded-full glass px-3 py-1.5 hover:bg-accent">
+              <FolderPlus className="h-3.5 w-3.5" />New subfolder
+            </button>
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="pl-9 pr-3 py-2 rounded-xl border border-border bg-background/40 text-sm outline-none w-40 sm:w-64 focus:border-primary" />
@@ -176,6 +264,29 @@ function Workspace() {
             <div className="text-center text-muted-foreground py-16">Select or create a folder to get started.</div>
           ) : (
             <>
+              {/* Subfolders */}
+              {(childrenMap.get(activeFolder)?.length ?? 0) > 0 && (
+                <section>
+                  <h2 className="font-semibold text-sm mb-3">Subfolders</h2>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {(childrenMap.get(activeFolder) ?? []).map((f) => (
+                      <button key={f.id} onClick={() => setActiveFolder(f.id)}
+                        className="glass rounded-2xl p-4 flex items-center gap-3 hover:shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition text-left">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 grid place-items-center text-primary shrink-0">
+                          <Folder className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium truncate">{f.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {(childrenMap.get(f.id)?.length ?? 0)} subfolder{(childrenMap.get(f.id)?.length ?? 0) === 1 ? "" : "s"}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
               <section>
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="font-semibold text-sm">Notes</h2>
@@ -194,6 +305,7 @@ function Workspace() {
                           />
                           <div className="flex opacity-0 group-hover:opacity-100 transition">
                             <button onClick={() => updateNote(n.id, { pinned: !n.pinned })} className={`p-1 ${n.pinned ? "text-primary" : "text-muted-foreground hover:text-primary"}`}><Pin className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => moveItem("note", n.id)} className="p-1 text-muted-foreground hover:text-primary" aria-label="Move"><ArrowRightLeft className="h-3.5 w-3.5" /></button>
                             <button onClick={() => deleteNote(n.id)} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
                           </div>
                         </div>
@@ -228,7 +340,10 @@ function Workspace() {
                         <button onClick={() => downloadFile(f.storage_path, f.name)} className="block text-left text-sm font-medium truncate hover:text-primary">{f.name}</button>
                         <div className="text-xs text-muted-foreground">{formatSize(f.size ?? 0)}</div>
                       </div>
-                      <button onClick={() => deleteFile(f.id, f.storage_path)} className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      <div className="flex opacity-0 group-hover:opacity-100 transition">
+                        <button onClick={() => moveItem("file", f.id)} className="p-1.5 text-muted-foreground hover:text-primary" aria-label="Move"><ArrowRightLeft className="h-4 w-4" /></button>
+                        <button onClick={() => deleteFile(f.id, f.storage_path)} className="p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      </div>
                     </div>
                   ))}
                   {filteredFiles.length === 0 && (
@@ -242,6 +357,23 @@ function Workspace() {
       </div>
     </div>
   );
+}
+
+function folderAncestors(f: FolderRow, all: FolderRow[]): FolderRow[] {
+  const map = new Map(all.map((x) => [x.id, x]));
+  const chain: FolderRow[] = [];
+  let cur: FolderRow | undefined = f;
+  const guard = new Set<string>();
+  while (cur && !guard.has(cur.id)) {
+    guard.add(cur.id);
+    chain.unshift(cur);
+    cur = cur.parent_id ? map.get(cur.parent_id) : undefined;
+  }
+  return chain;
+}
+
+function folderPath(f: FolderRow, all: FolderRow[]): string {
+  return folderAncestors(f, all).map((x) => x.name).join(" / ");
 }
 
 function formatSize(b: number) {
