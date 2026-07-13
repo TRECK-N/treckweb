@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2, ArrowLeft, Users, UserPlus, LogOut, Crown, Shield, X } from "lucide-react";
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ChatComposer } from "@/components/chat-composer";
 import { MessageAttachments } from "@/components/message-attachments";
 import type { ChatAttachment } from "@/lib/chat-attachments";
+import { useTypingIndicator } from "@/hooks/use-typing";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
   component: GroupConversation,
