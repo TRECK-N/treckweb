@@ -124,8 +124,8 @@ function SidebarInner({
 }) {
   return (
     <div className="flex flex-col h-full p-4">
-      <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg px-2 py-2">
-        <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary-glow shadow-[var(--shadow-glow)]" />
+      <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg px-2 py-2">
+        <img src={logoAsset.url} alt="TreckWeb" className="h-9 w-9 rounded-full object-cover ring-1 ring-primary/40 shadow-[var(--shadow-glow)]" />
         TreckWeb
       </Link>
 
