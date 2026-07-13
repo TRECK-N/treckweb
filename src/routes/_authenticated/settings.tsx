@@ -4,13 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Loader2, Save, LogOut, Trash2, Sun, Moon, Bell, Upload, Image as ImageIcon,
-  MessageSquare, Bot, Sparkles, Megaphone, Camera,
+  Loader2, Save, LogOut, Trash2, Sun, Moon, Upload, Image as ImageIcon, Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
-import { useNotificationPrefs, type NotificationPrefs } from "@/hooks/use-notification-prefs";
-import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
@@ -35,8 +32,8 @@ function Settings() {
     },
   });
 
-  const { data: sub } = useSubscription(user.id);
-  const { prefs, update: updatePrefs } = useNotificationPrefs(user.id);
+
+
 
   const [form, setForm] = useState({ display_name: "", username: "", bio: "", language: "en" });
   useEffect(() => {
@@ -137,9 +134,8 @@ function Settings() {
     navigate({ to: "/auth", replace: true });
   };
 
-  const togglePref = (key: keyof NotificationPrefs) => {
-    updatePrefs.mutate({ [key]: !prefs[key] });
-  };
+
+
 
   if (isLoading) {
     return <div className="grid place-items-center h-screen"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -227,53 +223,6 @@ function Settings() {
           <button onClick={() => setTheme("dark")} className={`glass rounded-xl p-4 flex flex-col items-center gap-2 border-2 transition ${theme === "dark" ? "border-primary" : "border-transparent"}`}>
             <Moon className="h-5 w-5" /><span className="text-sm">Dark</span>
           </button>
-        </div>
-      </section>
-
-      {/* Notifications */}
-      <section className="glass rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="font-semibold flex items-center gap-2"><Bell className="h-4 w-4" />Email notifications</h2>
-          <ToggleSwitch checked={prefs.master_enabled} onChange={() => togglePref("master_enabled")} />
-        </div>
-        <p className="text-xs text-muted-foreground mb-5">
-          Master switch — turning this off silences every email TRECK HUB would otherwise send you.
-        </p>
-
-        <div className={`space-y-6 ${prefs.master_enabled ? "" : "opacity-50 pointer-events-none"}`}>
-          <NotifGroup icon={MessageSquare} title="Chat">
-            <NotifRow label="Private messages" description="Someone sends you a DM"
-              checked={prefs.chat_private} onChange={() => togglePref("chat_private")} />
-            <NotifRow label="Group messages" description="Activity in your groups"
-              checked={prefs.chat_groups} onChange={() => togglePref("chat_groups")} />
-            <NotifRow label="Global chat activity" description="Highlights from the Global room"
-              checked={prefs.chat_global} onChange={() => togglePref("chat_global")} />
-          </NotifGroup>
-
-          <NotifGroup icon={Bot} title="AI">
-            <NotifRow label="Daily AI limit reset" description="Off by default — email me when I can prompt again"
-              checked={prefs.ai_reset} onChange={() => togglePref("ai_reset")} />
-          </NotifGroup>
-
-          <NotifGroup icon={Sparkles} title="TRECK updates">
-            <NotifRow label="Product updates & announcements" description="Big platform changes and new features"
-              checked={prefs.updates} onChange={() => togglePref("updates")} />
-          </NotifGroup>
-
-          <NotifGroup icon={Megaphone} title="Marketing">
-            {sub?.isPro ? (
-              <div className="text-xs text-muted-foreground italic">You already have TRECK PRO — no PRO promos will be sent.</div>
-            ) : (
-              <NotifRow label="TRECK PRO offers" description="Occasional discounts on PRO Pass"
-                checked={prefs.marketing_pro} onChange={() => togglePref("marketing_pro")} />
-            )}
-            {sub?.musicPackUnlocked ? (
-              <div className="text-xs text-muted-foreground italic">You already own the Music Pack — no music promos will be sent.</div>
-            ) : (
-              <NotifRow label="Music Bundle offers" description="Deals on the Complete Music Pack"
-                checked={prefs.marketing_music} onChange={() => togglePref("marketing_music")} />
-            )}
-          </NotifGroup>
         </div>
       </section>
 
@@ -389,31 +338,6 @@ function AvatarPicker({
   );
 }
 
-function NotifGroup({ icon: Icon, title, children }: { icon: React.ComponentType<{ className?: string }>; title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-        <Icon className="h-3.5 w-3.5" />
-        {title}
-      </div>
-      <div className="space-y-1 rounded-2xl border border-border/60 divide-y divide-border/40 overflow-hidden">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function NotifRow({ label, description, checked, onChange }: { label: string; description: string; checked: boolean; onChange: () => void }) {
-  return (
-    <label className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-accent/30 transition">
-      <div className="min-w-0">
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-muted-foreground">{description}</div>
-      </div>
-      <ToggleSwitch checked={checked} onChange={onChange} />
-    </label>
-  );
-}
 
 function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (

@@ -1,71 +1,74 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Play, Pause, SkipBack, SkipForward, X, Music as MusicIcon } from "lucide-react";
-import { useMusicPlayer, formatTime } from "./music-player-provider";
+import { Play, Pause, X, Music as MusicIcon, Volume2, VolumeX } from "lucide-react";
+import { useMusicPlayer } from "./music-player-provider";
 
 export function MiniPlayer() {
-  const { current, playing, progress, duration, toggle, next, prev, stop } = useMusicPlayer();
+  const {
+    current, playing, progress, duration, toggle, stop,
+    volume, muted, setVolume, toggleMute, seek,
+  } = useMusicPlayer();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  // Hide on /music where the full player is shown
   const hideOnMusic = pathname.startsWith("/music");
+  const dur = duration || current?.duration_seconds || 0;
 
   return (
     <AnimatePresence>
       {current && !hideOnMusic && (
         <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed z-40 left-1/2 -translate-x-1/2 bottom-4 lg:bottom-6 w-[min(720px,calc(100%-1.5rem))]"
+          initial={{ y: 40, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 40, opacity: 0, scale: 0.95 }}
+          transition={{ type: "spring", damping: 25, stiffness: 320 }}
+          className="fixed z-40 left-3 lg:left-4 bottom-24 lg:bottom-28 w-[min(240px,calc(100%-1.5rem))]"
         >
-          <div className="glass rounded-2xl shadow-[var(--shadow-glow)] border border-border/60 backdrop-blur-xl">
-            <div className="relative">
-              {/* Progress bar (top edge) */}
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-border/50 rounded-t-2xl overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary-glow transition-[width] duration-200"
-                  style={{ width: `${duration ? (progress / duration) * 100 : 0}%` }} />
-              </div>
-
-              <div className="flex items-center gap-3 p-2.5 pr-3">
+          <div className="glass rounded-2xl shadow-[var(--shadow-glow)] border border-border/60 backdrop-blur-xl overflow-hidden">
+            <div className="relative p-3">
+              <div className="flex items-center gap-2.5">
                 <Link
                   to="/music"
-                  className="flex items-center gap-2.5 min-w-0 flex-1 hover:bg-accent/40 rounded-xl p-1 transition"
+                  className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-fuchsia-500 to-primary grid place-items-center text-white overflow-hidden"
                 >
-                  <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-fuchsia-500 to-primary grid place-items-center text-white overflow-hidden">
-                    {current.cover_url ? (
-                      <img src={current.cover_url} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <MusicIcon className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div className="min-w-0 hidden sm:block">
-                    <div className="font-medium text-sm truncate">{current.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">{current.artist}</div>
-                  </div>
+                  {current.cover_url ? (
+                    <img src={current.cover_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <MusicIcon className="h-4 w-4" />
+                  )}
                 </Link>
-
-                <div className="flex items-center gap-1">
-                  <button onClick={prev} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition" aria-label="Previous">
-                    <SkipBack className="h-4 w-4" />
-                  </button>
-                  <button onClick={toggle}
-                    className="h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center hover:opacity-90 shadow-[var(--shadow-glow)]"
-                    aria-label={playing ? "Pause" : "Play"}>
-                    {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-[1px]" />}
-                  </button>
-                  <button onClick={next} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition" aria-label="Next">
-                    <SkipForward className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="hidden md:block text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                  {formatTime(progress)} / {formatTime(duration || current.duration_seconds || 0)}
-                </div>
-
-                <button onClick={stop} className="p-2 rounded-lg text-muted-foreground hover:text-destructive transition" aria-label="Close">
-                  <X className="h-4 w-4" />
+                <Link to="/music" className="min-w-0 flex-1">
+                  <div className="font-medium text-xs truncate">{current.title}</div>
+                  <div className="text-[10px] text-muted-foreground truncate">{current.artist}</div>
+                </Link>
+                <button onClick={stop} className="p-1 rounded-lg text-muted-foreground hover:text-destructive transition shrink-0" aria-label="Close">
+                  <X className="h-3.5 w-3.5" />
                 </button>
+              </div>
+
+              <div className="mt-2.5 flex items-center gap-2">
+                <button onClick={toggle}
+                  className="h-8 w-8 shrink-0 rounded-full bg-primary text-primary-foreground grid place-items-center hover:opacity-90 shadow-[var(--shadow-glow)]"
+                  aria-label={playing ? "Pause" : "Play"}>
+                  {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
+                </button>
+                <input
+                  type="range" min={0} max={dur || 0} step="0.1" value={progress}
+                  onChange={(e) => seek(Number(e.target.value))}
+                  className="flex-1 accent-primary h-1 min-w-0"
+                  aria-label="Seek"
+                />
+              </div>
+
+              <div className="mt-2 flex items-center gap-2">
+                <button onClick={toggleMute} className="p-1 rounded-lg text-muted-foreground hover:text-foreground shrink-0" aria-label="Mute">
+                  {muted || volume === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                </button>
+                <input
+                  type="range" min={0} max={1} step={0.01}
+                  value={muted ? 0 : volume}
+                  onChange={(e) => setVolume(Number(e.target.value))}
+                  className="flex-1 accent-primary h-1 min-w-0"
+                  aria-label="Volume"
+                />
               </div>
             </div>
           </div>

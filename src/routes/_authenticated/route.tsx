@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { ProBadge } from "@/components/pro-badge";
 import { MusicPlayerProvider } from "@/components/music-player-provider";
 import { MiniPlayer } from "@/components/mini-player";
+import logoAsset from "@/assets/treckweb-logo.png.asset.json";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -98,7 +99,7 @@ function AuthLayout() {
               <Menu className="h-5 w-5" />
             </button>
             <Link to="/dashboard" className="flex items-center gap-2 font-bold">
-              <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-primary-glow" />
+              <img src={logoAsset.url} alt="TreckWeb" className="h-8 w-8 rounded-full object-cover ring-1 ring-primary/40" />
               TreckWeb
             </Link>
             <div className="w-9" />
@@ -123,14 +124,14 @@ function SidebarInner({
 }) {
   return (
     <div className="flex flex-col h-full p-4">
-      <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg px-2 py-2">
-        <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary-glow shadow-[var(--shadow-glow)]" />
+      <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg px-2 py-2">
+        <img src={logoAsset.url} alt="TreckWeb" className="h-9 w-9 rounded-full object-cover ring-1 ring-primary/40 shadow-[var(--shadow-glow)]" />
         TreckWeb
       </Link>
 
       <nav className="mt-6 flex flex-col gap-1">
         {NAV.map((item) => {
-          const isChat = item.to === "/chat" && (pathname.startsWith("/chat") || pathname.startsWith("/messages") || pathname.startsWith("/groups"));
+          const isChat = item.to === "/chat" && (pathname.startsWith("/chat") || pathname.startsWith("/messages"));
           const active = isChat || pathname === item.to || (item.to !== "/dashboard" && item.to !== "/chat" && pathname.startsWith(item.to));
           return (
             <Link

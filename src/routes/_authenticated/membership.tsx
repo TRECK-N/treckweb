@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Crown, Check, Loader2, Sparkles, Music, Bot, Users, MessageCircle } from "lucide-react";
+import { Crown, Check, Loader2, Sparkles, Music, Bot, Image as ImageIcon, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 
@@ -21,10 +21,10 @@ const PLANS: { months: number; label: string; save?: string }[] = [
 const DISCOUNTS: Record<number, number> = { 1: 1, 3: 0.9, 6: 0.8, 12: 0.67 };
 
 const BENEFITS = [
-  { icon: Bot, title: "Unlimited AI", desc: "No limits on messages, file uploads, images, and camera analysis." },
-  { icon: MessageCircle, title: "Attachments in chats", desc: "Send images and files in private messages and groups." },
-  { icon: Users, title: "Create groups", desc: "Build unlimited group chats and manage members." },
-  { icon: Music, title: "Premium music", desc: "Early access to premium tracks as the library expands." },
+  { icon: Bot, title: "2× daily AI messages", desc: "10 AI prompts per day, twice the Standard limit." },
+  { icon: Paperclip, title: "AI file uploads", desc: "Attach PDFs and documents to your AI chats." },
+  { icon: ImageIcon, title: "AI image analysis", desc: "Send photos and images to the AI for analysis." },
+  { icon: Sparkles, title: "Priority PRO features", desc: "Early access to new PRO capabilities as they launch." },
 ];
 
 function priceFor(months: number) {
@@ -79,9 +79,9 @@ function Membership() {
       .update({ music_pack_unlocked: true }).eq("id", user.id);
     if (error) { toast.error(error.message); setProcessing(null); return; }
     await supabase.from("purchases").insert({
-      user_id: user.id, product_kind: "music_pack", amount: 9,
+      user_id: user.id, product_kind: "music_pack", amount: 5,
     });
-    toast.success("Complete Music Pack unlocked forever 🎵");
+    toast.success("Music Pack unlocked forever 🎵");
     await refetch();
     qc.invalidateQueries({ queryKey: ["purchases", user.id] });
     qc.invalidateQueries({ queryKey: ["subscription", user.id] });
@@ -187,7 +187,7 @@ function Membership() {
         </button>
       </div>
 
-      {/* Complete Music Pack */}
+      {/* Music Pack */}
       <div className="glass rounded-3xl p-6 lg:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -195,12 +195,12 @@ function Membership() {
               <Music className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Complete Music Pack</h2>
+              <h2 className="text-xl font-bold">Music Pack</h2>
               <p className="text-sm text-muted-foreground">Unlock the entire music library — every current and future track.</p>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold">$9</div>
+            <div className="text-2xl font-bold">$5</div>
             <div className="text-xs text-muted-foreground">One time</div>
           </div>
         </div>
@@ -216,7 +216,7 @@ function Membership() {
           className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-[var(--shadow-glow)] hover:opacity-95 disabled:opacity-50"
         >
           {processing === "music" ? <Loader2 className="h-4 w-4 animate-spin" /> : sub?.musicPackUnlocked ? <Check className="h-4 w-4" /> : <Music className="h-4 w-4" />}
-          {sub?.musicPackUnlocked ? "Already unlocked" : "Unlock Complete Music Pack — $9"}
+          {sub?.musicPackUnlocked ? "Already unlocked" : "Unlock Music Pack — $5"}
         </button>
       </div>
 
@@ -231,7 +231,7 @@ function Membership() {
               <div key={h.id} className="flex items-center justify-between py-3">
                 <div>
                   <div className="font-medium text-sm">
-                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Complete Music Pack"}
+                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Music Pack"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(h.created_at).toLocaleString()}

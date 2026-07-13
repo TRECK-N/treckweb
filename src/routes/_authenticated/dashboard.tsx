@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, MessageCircle, FolderOpen, Music, Sparkles, TrendingUp, Users, Crown, Zap } from "lucide-react";
+import { Bot, MessageCircle, FolderOpen, Music, Sparkles, TrendingUp, Users, Crown, Zap, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useDailyAiUsage } from "@/hooks/use-daily-ai-usage";
@@ -27,19 +27,19 @@ function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ["stats", user.id],
     queryFn: async () => {
-      const [threads, notes, folders, friends, groups] = await Promise.all([
+      const [threads, notes, folders, friends, likes] = await Promise.all([
         supabase.from("ai_threads").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("notes").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("folders").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("friendships").select("id", { count: "exact", head: true }).eq("status", "accepted").or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),
-        supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("song_likes").select("song_id", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       return {
         threads: threads.count || 0,
         notes: notes.count || 0,
         folders: folders.count || 0,
         friends: friends.count || 0,
-        groups: groups.count || 0,
+        likes: likes.count || 0,
       };
     },
   });
@@ -88,7 +88,7 @@ function Dashboard() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { to: "/ai", label: "Ask AI", desc: "Start a new chat", icon: Bot, gradient: "from-violet-500 to-fuchsia-500" },
-            { to: "/chat", label: "Chat", desc: "Talk to friends & groups", icon: MessageCircle, gradient: "from-sky-500 to-cyan-400" },
+            { to: "/chat", label: "Chat", desc: "Talk with friends & the community", icon: MessageCircle, gradient: "from-sky-500 to-cyan-400" },
             { to: "/workspace", label: "Workspace", desc: "Notes & files", icon: FolderOpen, gradient: "from-emerald-500 to-teal-400" },
             { to: "/music", label: "Music", desc: "Focus soundtrack", icon: Music, gradient: "from-fuchsia-500 to-primary" },
           ].map((q, i) => (
@@ -111,7 +111,7 @@ function Dashboard() {
               { label: "AI chats", value: stats?.threads ?? 0, icon: Bot },
               { label: "Notes", value: stats?.notes ?? 0, icon: FolderOpen },
               { label: "Friends", value: stats?.friends ?? 0, icon: Users },
-              { label: "Groups", value: stats?.groups ?? 0, icon: MessageCircle },
+              { label: "Liked songs", value: stats?.likes ?? 0, icon: Heart },
             ].map((s) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 className="glass rounded-2xl p-5 hover:shadow-[var(--shadow-glow)] transition">
@@ -175,8 +175,8 @@ function Dashboard() {
               </div>
               <p className="mt-2 text-sm">
                 {sub?.musicPackUnlocked
-                  ? "Your Complete Music Pack is unlocked. Dive into the library."
-                  : "Unlock the Complete Music Pack to focus with the full TRECK library."}
+                  ? "Your Music Pack is unlocked. Dive into the library."
+                  : "Unlock the Music Pack to focus with the full TRECK library."}
               </p>
               <Link to={sub?.musicPackUnlocked ? "/music" : "/membership"}
                 className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-primary px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-glow)] hover:opacity-90">

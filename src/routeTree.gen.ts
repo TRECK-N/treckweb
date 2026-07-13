@@ -20,15 +20,12 @@ import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedMembershipRouteImport } from './routes/_authenticated/membership'
-import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
-import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
-import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -85,11 +82,6 @@ const AuthenticatedMembershipRoute = AuthenticatedMembershipRouteImport.update({
   path: '/membership',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
-  id: '/groups',
-  path: '/groups',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
@@ -111,12 +103,6 @@ const AuthenticatedMessagesIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
-const AuthenticatedGroupsIndexRoute =
-  AuthenticatedGroupsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedGroupsRoute,
-  } as any)
 const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
   id: '/ai/',
   path: '/ai/',
@@ -127,12 +113,6 @@ const AuthenticatedMessagesUserIdRoute =
     id: '/$userId',
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
-  } as any)
-const AuthenticatedGroupsGroupIdRoute =
-  AuthenticatedGroupsGroupIdRouteImport.update({
-    id: '/$groupId',
-    path: '/$groupId',
-    getParentRoute: () => AuthenticatedGroupsRoute,
   } as any)
 const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
   id: '/ai/$threadId',
@@ -147,7 +127,6 @@ export interface FileRoutesByFullPath {
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/friends': typeof AuthenticatedFriendsRoute
-  '/groups': typeof AuthenticatedGroupsRouteWithChildren
   '/membership': typeof AuthenticatedMembershipRoute
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/music': typeof AuthenticatedMusicRoute
@@ -156,10 +135,8 @@ export interface FileRoutesByFullPath {
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
-  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
-  '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/messages/': typeof AuthenticatedMessagesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -176,10 +153,8 @@ export interface FileRoutesByTo {
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
-  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai': typeof AuthenticatedAiIndexRoute
-  '/groups': typeof AuthenticatedGroupsIndexRoute
   '/messages': typeof AuthenticatedMessagesIndexRoute
 }
 export interface FileRoutesById {
@@ -191,7 +166,6 @@ export interface FileRoutesById {
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/friends': typeof AuthenticatedFriendsRoute
-  '/_authenticated/groups': typeof AuthenticatedGroupsRouteWithChildren
   '/_authenticated/membership': typeof AuthenticatedMembershipRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/music': typeof AuthenticatedMusicRoute
@@ -200,10 +174,8 @@ export interface FileRoutesById {
   '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
-  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
-  '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
 }
 export interface FileRouteTypes {
@@ -215,7 +187,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/friends'
-    | '/groups'
     | '/membership'
     | '/messages'
     | '/music'
@@ -224,10 +195,8 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/ai/$threadId'
-    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai/'
-    | '/groups/'
     | '/messages/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -244,10 +213,8 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/ai/$threadId'
-    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai'
-    | '/groups'
     | '/messages'
   id:
     | '__root__'
@@ -258,7 +225,6 @@ export interface FileRouteTypes {
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
     | '/_authenticated/friends'
-    | '/_authenticated/groups'
     | '/_authenticated/membership'
     | '/_authenticated/messages'
     | '/_authenticated/music'
@@ -267,10 +233,8 @@ export interface FileRouteTypes {
     | '/_authenticated/workspace'
     | '/api/chat'
     | '/_authenticated/ai/$threadId'
-    | '/_authenticated/groups/$groupId'
     | '/_authenticated/messages/$userId'
     | '/_authenticated/ai/'
-    | '/_authenticated/groups/'
     | '/_authenticated/messages/'
   fileRoutesById: FileRoutesById
 }
@@ -361,13 +325,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMembershipRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/groups': {
-      id: '/_authenticated/groups'
-      path: '/groups'
-      fullPath: '/groups'
-      preLoaderRoute: typeof AuthenticatedGroupsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/friends': {
       id: '/_authenticated/friends'
       path: '/friends'
@@ -396,13 +353,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesIndexRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
-    '/_authenticated/groups/': {
-      id: '/_authenticated/groups/'
-      path: '/'
-      fullPath: '/groups/'
-      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
-      parentRoute: typeof AuthenticatedGroupsRoute
-    }
     '/_authenticated/ai/': {
       id: '/_authenticated/ai/'
       path: '/ai'
@@ -417,13 +367,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
-    '/_authenticated/groups/$groupId': {
-      id: '/_authenticated/groups/$groupId'
-      path: '/$groupId'
-      fullPath: '/groups/$groupId'
-      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
-      parentRoute: typeof AuthenticatedGroupsRoute
-    }
     '/_authenticated/ai/$threadId': {
       id: '/_authenticated/ai/$threadId'
       path: '/ai/$threadId'
@@ -433,19 +376,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface AuthenticatedGroupsRouteChildren {
-  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
-  AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
-}
-
-const AuthenticatedGroupsRouteChildren: AuthenticatedGroupsRouteChildren = {
-  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
-  AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
-}
-
-const AuthenticatedGroupsRouteWithChildren =
-  AuthenticatedGroupsRoute._addFileChildren(AuthenticatedGroupsRouteChildren)
 
 interface AuthenticatedMessagesRouteChildren {
   AuthenticatedMessagesUserIdRoute: typeof AuthenticatedMessagesUserIdRoute
@@ -466,7 +396,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
-  AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRouteWithChildren
   AuthenticatedMembershipRoute: typeof AuthenticatedMembershipRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
@@ -481,7 +410,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
-  AuthenticatedGroupsRoute: AuthenticatedGroupsRouteWithChildren,
   AuthenticatedMembershipRoute: AuthenticatedMembershipRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedMusicRoute: AuthenticatedMusicRoute,
