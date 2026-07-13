@@ -231,7 +231,7 @@ function Membership() {
               <div key={h.id} className="flex items-center justify-between py-3">
                 <div>
                   <div className="font-medium text-sm">
-                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Extra Music Pack"}
+                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Complete Music Pack"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(h.created_at).toLocaleString()}
