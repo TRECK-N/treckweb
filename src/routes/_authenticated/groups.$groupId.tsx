@@ -100,12 +100,11 @@ function GroupConversation() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const send = async () => {
-    if (!input.trim()) return;
-    const text = input.trim();
-    setInput("");
+  const send = async ({ content, attachments }: { content: string; attachments: ChatAttachment[] }) => {
     const { error } = await supabase.from("group_messages").insert({
-      group_id: groupId, sender_id: user.id, content: text,
+      group_id: groupId, sender_id: user.id,
+      content: content || null,
+      attachments: attachments as unknown as never,
     });
     if (error) toast.error(error.message);
   };
