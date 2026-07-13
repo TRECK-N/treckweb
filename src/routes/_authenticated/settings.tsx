@@ -32,8 +32,8 @@ function Settings() {
     },
   });
 
-  const { data: sub } = useSubscription(user.id);
-  const { prefs, update: updatePrefs } = useNotificationPrefs(user.id);
+
+
 
   const [form, setForm] = useState({ display_name: "", username: "", bio: "", language: "en" });
   useEffect(() => {
