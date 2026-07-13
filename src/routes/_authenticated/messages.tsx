@@ -48,7 +48,9 @@ function MessagesLayout() {
   });
 
   return (
-    <div className="flex h-[calc(100vh-56px)] lg:h-screen">
+    <div className="flex flex-col h-[calc(100vh-56px)] lg:h-screen">
+      <ChatTabs />
+      <div className="flex flex-1 min-h-0">
       <aside className="w-full md:w-80 border-r border-border/60 flex flex-col bg-sidebar/40">
         <header className="px-4 py-4 border-b border-border/60">
           <h1 className="font-bold text-lg">Messages</h1>
