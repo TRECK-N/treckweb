@@ -47,7 +47,7 @@ function DMConversation() {
         .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${user.id})`)
         .order("created_at", { ascending: true })
         .limit(200);
-      return (data ?? []) as DM[];
+      return (data ?? []) as unknown as DM[];
     },
   });
 
