@@ -79,9 +79,9 @@ function Membership() {
       .update({ music_pack_unlocked: true }).eq("id", user.id);
     if (error) { toast.error(error.message); setProcessing(null); return; }
     await supabase.from("purchases").insert({
-      user_id: user.id, product_kind: "music_pack", amount: 9,
+      user_id: user.id, product_kind: "music_pack", amount: 5,
     });
-    toast.success("Complete Music Pack unlocked forever 🎵");
+    toast.success("Music Pack unlocked forever 🎵");
     await refetch();
     qc.invalidateQueries({ queryKey: ["purchases", user.id] });
     qc.invalidateQueries({ queryKey: ["subscription", user.id] });
