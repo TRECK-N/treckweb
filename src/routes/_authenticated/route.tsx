@@ -26,11 +26,9 @@ const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/ai", label: "AI Assistant", icon: Bot },
   { to: "/friends", label: "Friends", icon: UserPlus },
-  { to: "/messages", label: "Messages", icon: Send },
-  { to: "/groups", label: "Groups", icon: Users },
-  { to: "/chat", label: "Global Chat", icon: MessageCircle },
+  { to: "/chat", label: "Chat", icon: MessageCircle },
+  { to: "/music", label: "Music", icon: Music },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
-  { to: "/store", label: "Store", icon: ShoppingBag },
   { to: "/membership", label: "Membership", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
