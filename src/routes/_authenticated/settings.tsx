@@ -4,13 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Loader2, Save, LogOut, Trash2, Sun, Moon, Bell, Upload, Image as ImageIcon,
-  MessageSquare, Bot, Sparkles, Megaphone, Camera,
+  Loader2, Save, LogOut, Trash2, Sun, Moon, Upload, Image as ImageIcon, Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
-import { useNotificationPrefs, type NotificationPrefs } from "@/hooks/use-notification-prefs";
-import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
