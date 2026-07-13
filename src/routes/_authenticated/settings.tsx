@@ -338,31 +338,6 @@ function AvatarPicker({
   );
 }
 
-function NotifGroup({ icon: Icon, title, children }: { icon: React.ComponentType<{ className?: string }>; title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-        <Icon className="h-3.5 w-3.5" />
-        {title}
-      </div>
-      <div className="space-y-1 rounded-2xl border border-border/60 divide-y divide-border/40 overflow-hidden">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function NotifRow({ label, description, checked, onChange }: { label: string; description: string; checked: boolean; onChange: () => void }) {
-  return (
-    <label className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-accent/30 transition">
-      <div className="min-w-0">
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-muted-foreground">{description}</div>
-      </div>
-      <ToggleSwitch checked={checked} onChange={onChange} />
-    </label>
-  );
-}
 
 function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
