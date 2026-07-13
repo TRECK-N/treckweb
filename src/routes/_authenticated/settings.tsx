@@ -226,53 +226,6 @@ function Settings() {
         </div>
       </section>
 
-      {/* Notifications */}
-      <section className="glass rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="font-semibold flex items-center gap-2"><Bell className="h-4 w-4" />Email notifications</h2>
-          <ToggleSwitch checked={prefs.master_enabled} onChange={() => togglePref("master_enabled")} />
-        </div>
-        <p className="text-xs text-muted-foreground mb-5">
-          Master switch — turning this off silences every email TRECK HUB would otherwise send you.
-        </p>
-
-        <div className={`space-y-6 ${prefs.master_enabled ? "" : "opacity-50 pointer-events-none"}`}>
-          <NotifGroup icon={MessageSquare} title="Chat">
-            <NotifRow label="Private messages" description="Someone sends you a DM"
-              checked={prefs.chat_private} onChange={() => togglePref("chat_private")} />
-            <NotifRow label="Group messages" description="Activity in your groups"
-              checked={prefs.chat_groups} onChange={() => togglePref("chat_groups")} />
-            <NotifRow label="Global chat activity" description="Highlights from the Global room"
-              checked={prefs.chat_global} onChange={() => togglePref("chat_global")} />
-          </NotifGroup>
-
-          <NotifGroup icon={Bot} title="AI">
-            <NotifRow label="Daily AI limit reset" description="Off by default — email me when I can prompt again"
-              checked={prefs.ai_reset} onChange={() => togglePref("ai_reset")} />
-          </NotifGroup>
-
-          <NotifGroup icon={Sparkles} title="TRECK updates">
-            <NotifRow label="Product updates & announcements" description="Big platform changes and new features"
-              checked={prefs.updates} onChange={() => togglePref("updates")} />
-          </NotifGroup>
-
-          <NotifGroup icon={Megaphone} title="Marketing">
-            {sub?.isPro ? (
-              <div className="text-xs text-muted-foreground italic">You already have TRECK PRO — no PRO promos will be sent.</div>
-            ) : (
-              <NotifRow label="TRECK PRO offers" description="Occasional discounts on PRO Pass"
-                checked={prefs.marketing_pro} onChange={() => togglePref("marketing_pro")} />
-            )}
-            {sub?.musicPackUnlocked ? (
-              <div className="text-xs text-muted-foreground italic">You already own the Music Pack — no music promos will be sent.</div>
-            ) : (
-              <NotifRow label="Music Bundle offers" description="Deals on the Complete Music Pack"
-                checked={prefs.marketing_music} onChange={() => togglePref("marketing_music")} />
-            )}
-          </NotifGroup>
-        </div>
-      </section>
-
       {/* Security */}
       <section className="glass rounded-2xl p-6">
         <h2 className="font-semibold mb-4">Change password</h2>
