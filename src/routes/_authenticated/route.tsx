@@ -2,8 +2,8 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, Sun, Moon, Crown,
-  Users, Send, UserPlus,
+  Home, Bot, MessageCircle, FolderOpen, Settings, LogOut, Menu, Sun, Moon, Crown,
+  UserPlus, Music,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
