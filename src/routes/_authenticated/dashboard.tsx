@@ -175,8 +175,8 @@ function Dashboard() {
               </div>
               <p className="mt-2 text-sm">
                 {sub?.musicPackUnlocked
-                  ? "Your Complete Music Pack is unlocked. Dive into the library."
-                  : "Unlock the Complete Music Pack to focus with the full TRECK library."}
+                  ? "Your Music Pack is unlocked. Dive into the library."
+                  : "Unlock the Music Pack to focus with the full TRECK library."}
               </p>
               <Link to={sub?.musicPackUnlocked ? "/music" : "/membership"}
                 className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-primary px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-glow)] hover:opacity-90">
