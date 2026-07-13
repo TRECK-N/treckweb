@@ -13,6 +13,12 @@ export function useSubscription(userId: string | undefined) {
   return useQuery<Subscription>({
     queryKey: ["subscription", userId],
     enabled: !!userId,
+    // Recompute PRO status live so expiring passes lock features immediately
+    // and renewals unlock them without a manual refresh.
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")

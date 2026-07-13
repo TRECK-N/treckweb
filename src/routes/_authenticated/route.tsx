@@ -3,13 +3,15 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Bot, MessageCircle, FolderOpen, Settings, LogOut, Menu, Sun, Moon, Crown,
-  UserPlus, Music,
+  UserPlus, Music, Search,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
 import { useSubscription } from "@/hooks/use-subscription";
 import { ProBadge } from "@/components/pro-badge";
+import { MusicPlayerProvider } from "@/components/music-player-provider";
+import { MiniPlayer } from "@/components/mini-player";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
+  { to: "/search", label: "Search", icon: Search },
   { to: "/ai", label: "AI Assistant", icon: Bot },
   { to: "/friends", label: "Friends", icon: UserPlus },
   { to: "/chat", label: "Chat", icon: MessageCircle },
@@ -64,51 +67,51 @@ function AuthLayout() {
   const initials = displayName.split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
-      {/* Sidebar (desktop) */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-border/60 bg-sidebar">
-        <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
-      </aside>
+    <MusicPlayerProvider>
+      <div className="flex min-h-screen w-full bg-background text-foreground">
+        <aside className="hidden lg:flex w-64 flex-col border-r border-border/60 bg-sidebar">
+          <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
+        </aside>
 
-      {/* Mobile sidebar */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.aside
-              initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-64 z-50 bg-sidebar border-r border-border flex flex-col"
-            >
-              <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {mobileOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                onClick={() => setMobileOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+                transition={{ type: "spring", damping: 25 }}
+                className="lg:hidden fixed left-0 top-0 bottom-0 w-64 z-50 bg-sidebar border-r border-border flex flex-col"
+              >
+                <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar (mobile) */}
-        <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-border/60 glass">
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="p-2 rounded-lg hover:bg-accent">
-            <Menu className="h-5 w-5" />
-          </button>
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold">
-            <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-primary-glow" />
-            TreckWeb
-          </Link>
-          <div className="w-9" />
-        </header>
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-border/60 glass">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="p-2 rounded-lg hover:bg-accent">
+              <Menu className="h-5 w-5" />
+            </button>
+            <Link to="/dashboard" className="flex items-center gap-2 font-bold">
+              <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-primary-glow" />
+              TreckWeb
+            </Link>
+            <div className="w-9" />
+          </header>
 
-        <main className="flex-1 min-w-0">
-          <Outlet />
-        </main>
+          <main className="flex-1 min-w-0">
+            <Outlet />
+          </main>
+        </div>
+
+        <MiniPlayer />
       </div>
-    </div>
+    </MusicPlayerProvider>
   );
 }
 

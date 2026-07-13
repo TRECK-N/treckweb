@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Pencil, Trash2, ArrowLeft, Check, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfiles } from "@/hooks/use-social";
 import { SocialAvatar } from "@/components/social-avatar";
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ChatComposer } from "@/components/chat-composer";
 import { MessageAttachments } from "@/components/message-attachments";
 import type { ChatAttachment } from "@/lib/chat-attachments";
+import { useTypingIndicator } from "@/hooks/use-typing";
 
 export const Route = createFileRoute("/_authenticated/messages/$userId")({
   component: DMConversation,
@@ -23,6 +24,7 @@ interface DM {
   content: string | null;
   created_at: string;
   edited_at: string | null;
+  read_at: string | null;
   attachments?: ChatAttachment[];
 }
 
@@ -34,8 +36,15 @@ function DMConversation() {
   const [editText, setEditText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { data: profileMap = new Map() } = useProfiles([otherId]);
+  const { data: profileMap = new Map() } = useProfiles([otherId, user.id]);
   const other = profileMap.get(otherId);
+  const me = profileMap.get(user.id);
+
+  const channelName = useMemo(() => `dm-typing-${[user.id, otherId].sort().join("-")}`, [user.id, otherId]);
+  const { typing, broadcast } = useTypingIndicator(channelName, {
+    userId: user.id,
+    name: me?.display_name || me?.username || "Someone",
+  });
 
   const queryKey = ["dm", user.id, otherId];
   const { data: messages = [] } = useQuery({
@@ -75,7 +84,20 @@ function DMConversation() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, typing.length]);
+
+  // Mark inbound messages as read whenever we see them
+  useEffect(() => {
+    const unread = messages
+      .filter((m) => m.recipient_id === user.id && m.sender_id === otherId && !m.read_at)
+      .map((m) => m.id);
+    if (unread.length === 0) return;
+    (async () => {
+      await supabase.from("direct_messages")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", unread);
+    })();
+  }, [messages, user.id, otherId]);
 
   const send = async ({ content, attachments }: { content: string; attachments: ChatAttachment[] }) => {
     const { error } = await supabase.from("direct_messages").insert({
@@ -143,9 +165,20 @@ function DMConversation() {
                   </>
                 )}
                 {isOwn && !editing && (
-                  <div className="mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                    {m.content && <button onClick={() => { setEditingId(m.id); setEditText(m.content ?? ""); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>}
-                    <button onClick={() => del(m.id)} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
+                  <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
+                    {m.read_at ? (
+                      <span className="inline-flex items-center gap-1 text-primary" title={`Read ${new Date(m.read_at).toLocaleString()}`}>
+                        <CheckCheck className="h-3 w-3" /> Read
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1" title="Delivered">
+                        <Check className="h-3 w-3" /> Delivered
+                      </span>
+                    )}
+                    <span className="opacity-0 group-hover:opacity-100 transition inline-flex gap-2">
+                      {m.content && <button onClick={() => { setEditingId(m.id); setEditText(m.content ?? ""); }} className="hover:text-foreground inline-flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>}
+                      <button onClick={() => del(m.id)} className="hover:text-destructive inline-flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
+                    </span>
                   </div>
                 )}
               </div>
@@ -155,9 +188,34 @@ function DMConversation() {
         {messages.length === 0 && (
           <div className="text-center text-sm text-muted-foreground py-10">No messages yet — say hi!</div>
         )}
+
+        <AnimatePresence>
+          {typing.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="flex items-center gap-3">
+              <SocialAvatar profile={other} size={36} />
+              <div className="glass rounded-2xl px-4 py-2.5 text-sm text-muted-foreground italic flex items-center gap-1">
+                <TypingDots /> {other?.display_name || "User"} is typing…
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <ChatComposer userId={user.id} placeholder="Message…" onSend={send} />
+      <ChatComposer userId={user.id} placeholder="Message…" onSend={send} onTyping={broadcast} />
     </div>
+  );
+}
+
+function TypingDots() {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[0, 1, 2].map((i) => (
+        <motion.span key={i}
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
+          className="h-1 w-1 rounded-full bg-primary" />
+      ))}
+    </span>
   );
 }

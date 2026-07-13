@@ -407,6 +407,48 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          ai_reset: boolean
+          chat_global: boolean
+          chat_groups: boolean
+          chat_private: boolean
+          created_at: string
+          marketing_music: boolean
+          marketing_pro: boolean
+          master_enabled: boolean
+          updated_at: string
+          updates: boolean
+          user_id: string
+        }
+        Insert: {
+          ai_reset?: boolean
+          chat_global?: boolean
+          chat_groups?: boolean
+          chat_private?: boolean
+          created_at?: string
+          marketing_music?: boolean
+          marketing_pro?: boolean
+          master_enabled?: boolean
+          updated_at?: string
+          updates?: boolean
+          user_id: string
+        }
+        Update: {
+          ai_reset?: boolean
+          chat_global?: boolean
+          chat_groups?: boolean
+          chat_private?: boolean
+          created_at?: string
+          marketing_music?: boolean
+          marketing_pro?: boolean
+          master_enabled?: boolean
+          updated_at?: string
+          updates?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
@@ -538,6 +580,27 @@ export type Database = {
           id?: string
           months?: number | null
           product_kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recent_searches: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
           user_id?: string
         }
         Relationships: []

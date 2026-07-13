@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2, ArrowLeft, Users, UserPlus, LogOut, Crown, Shield, X } from "lucide-react";
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ChatComposer } from "@/components/chat-composer";
 import { MessageAttachments } from "@/components/message-attachments";
 import type { ChatAttachment } from "@/lib/chat-attachments";
+import { useTypingIndicator } from "@/hooks/use-typing";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
   component: GroupConversation,
@@ -63,6 +64,11 @@ function GroupConversation() {
   const { data: memberProfiles = new Map() } = useProfiles(memberIds);
   const myMembership = members.find((m) => m.user_id === user.id);
   const canAdmin = myMembership?.role === "owner" || myMembership?.role === "admin";
+  const me = memberProfiles.get(user.id);
+  const { typing, broadcast } = useTypingIndicator(`group-typing-${groupId}`, {
+    userId: user.id,
+    name: me?.display_name || me?.username || "Someone",
+  });
 
   const msgKey = ["group-messages", groupId];
   const { data: messages = [] } = useQuery({
@@ -213,9 +219,18 @@ function GroupConversation() {
             No messages yet. Start the conversation!
           </div>
         )}
+
+        <AnimatePresence>
+          {typing.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="text-xs text-muted-foreground italic pl-1">
+              {typing.map((t) => t.name).join(", ")} {typing.length === 1 ? "is" : "are"} typing…
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <ChatComposer userId={user.id} placeholder={`Message ${group?.name || "group"}…`} onSend={send} />
+      <ChatComposer userId={user.id} placeholder={`Message ${group?.name || "group"}…`} onSend={send} onTyping={broadcast} />
 
       {showMembers && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowMembers(false)}>

@@ -1,11 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Loader2, Save, LogOut, Trash2, Sun, Moon, Bell, Globe } from "lucide-react";
+import {
+  Loader2, Save, LogOut, Trash2, Sun, Moon, Bell, Upload, Image as ImageIcon,
+  MessageSquare, Bot, Sparkles, Megaphone, Camera,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
+import { useNotificationPrefs, type NotificationPrefs } from "@/hooks/use-notification-prefs";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
@@ -18,7 +23,9 @@ function Settings() {
   const { theme, setTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [pwd, setPwd] = useState("");
-  const [notif, setNotif] = useState(true);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", user.id],
@@ -27,6 +34,9 @@ function Settings() {
       return data;
     },
   });
+
+  const { data: sub } = useSubscription(user.id);
+  const { prefs, update: updatePrefs } = useNotificationPrefs(user.id);
 
   const [form, setForm] = useState({ display_name: "", username: "", bio: "", language: "en" });
   useEffect(() => {
@@ -47,6 +57,63 @@ function Settings() {
     toast.success("Profile saved");
   };
 
+  const uploadAvatar = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, {
+        contentType: file.type, upsert: false,
+      });
+      if (uploadError) throw uploadError;
+      const { data: signed } = await supabase.storage.from("avatars")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5); // 5-year signed URL
+      if (!signed?.signedUrl) throw new Error("Could not generate URL");
+      const { error: updateError } = await supabase
+        .from("profiles").update({ avatar_url: signed.signedUrl }).eq("id", user.id);
+      if (updateError) throw updateError;
+      qc.invalidateQueries({ queryKey: ["profile", user.id] });
+      toast.success("Profile picture updated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setAvatarUploading(false);
+      setShowPicker(false);
+    }
+  };
+
+  const pickFromLibrary = async (path: string) => {
+    setAvatarUploading(true);
+    try {
+      // Copy the file into avatars bucket so RLS/lifetime is stable
+      const { data: fileData, error: dlErr } = await supabase.storage.from("workspace").download(path);
+      if (dlErr || !fileData) throw dlErr ?? new Error("Download failed");
+      const ext = path.split(".").pop() || "png";
+      const newPath = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(newPath, fileData, {
+        contentType: fileData.type, upsert: false,
+      });
+      if (upErr) throw upErr;
+      const { data: signed } = await supabase.storage.from("avatars")
+        .createSignedUrl(newPath, 60 * 60 * 24 * 365 * 5);
+      if (!signed?.signedUrl) throw new Error("Could not generate URL");
+      await supabase.from("profiles").update({ avatar_url: signed.signedUrl }).eq("id", user.id);
+      qc.invalidateQueries({ queryKey: ["profile", user.id] });
+      toast.success("Profile picture updated");
+      setShowPicker(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to use image");
+    } finally { setAvatarUploading(false); }
+  };
+
   const changePassword = async () => {
     if (pwd.length < 6) return toast.error("Password must be at least 6 characters");
     const { error } = await supabase.auth.updateUser({ password: pwd });
@@ -57,7 +124,6 @@ function Settings() {
 
   const deleteAccount = async () => {
     if (!confirm("Delete your account? This cannot be undone.")) return;
-    // Anonymize + sign out (server-side deletion requires admin role)
     await supabase.from("profiles").update({ display_name: "Deleted user", bio: null, avatar_url: null }).eq("id", user.id);
     await supabase.auth.signOut();
     toast.success("Account marked for deletion");
@@ -71,12 +137,16 @@ function Settings() {
     navigate({ to: "/auth", replace: true });
   };
 
+  const togglePref = (key: keyof NotificationPrefs) => {
+    updatePrefs.mutate({ [key]: !prefs[key] });
+  };
+
   if (isLoading) {
     return <div className="grid place-items-center h-screen"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   return (
-    <div className="p-6 lg:p-10 max-w-3xl mx-auto space-y-6">
+    <div className="p-6 lg:p-10 max-w-3xl mx-auto space-y-6 pb-40">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">Manage your account and preferences.</p>
@@ -86,14 +156,38 @@ function Settings() {
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-6">
         <h2 className="font-semibold mb-4">Profile</h2>
         <div className="flex items-center gap-4 mb-6">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow grid place-items-center text-primary-foreground text-xl font-bold overflow-hidden">
-            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (form.display_name[0]?.toUpperCase() ?? "?")}
+          <div className="relative group">
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-primary-glow grid place-items-center text-primary-foreground text-2xl font-bold overflow-hidden shadow-[var(--shadow-glow)]">
+              {profile?.avatar_url
+                ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                : (form.display_name[0]?.toUpperCase() ?? "?")}
+            </div>
+            <button
+              onClick={() => setShowPicker(true)}
+              disabled={avatarUploading}
+              className="absolute inset-0 rounded-2xl bg-black/60 backdrop-blur-sm grid place-items-center opacity-0 group-hover:opacity-100 transition text-white text-xs disabled:opacity-100"
+              aria-label="Change picture"
+            >
+              {avatarUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Camera className="h-4 w-4 mb-0.5" /><span>Change</span></>}
+            </button>
           </div>
           <div className="text-sm text-muted-foreground">
             <div className="font-medium text-foreground">{user.email}</div>
             <div>Member since {new Date(user.created_at).toLocaleDateString()}</div>
+            <button
+              onClick={() => setShowPicker(true)}
+              disabled={avatarUploading}
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs hover:bg-accent transition"
+            >
+              <Upload className="h-3 w-3" /> Change profile picture
+            </button>
           </div>
         </div>
+
+        <input
+          ref={avatarInputRef} type="file" accept="image/*" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadAvatar(f); e.target.value = ""; }}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Display name">
@@ -101,12 +195,6 @@ function Settings() {
           </Field>
           <Field label="Username">
             <input value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} className={inp} />
-          </Field>
-          <Field label="Avatar URL">
-            <input placeholder="https://…" value={profile?.avatar_url ?? ""} onChange={async (e) => {
-              await supabase.from("profiles").update({ avatar_url: e.target.value }).eq("id", user.id);
-              qc.invalidateQueries({ queryKey: ["profile", user.id] });
-            }} className={inp} />
           </Field>
           <Field label="Language">
             <select value={form.language} onChange={(e) => setForm((f) => ({ ...f, language: e.target.value }))} className={inp}>
@@ -144,11 +232,49 @@ function Settings() {
 
       {/* Notifications */}
       <section className="glass rounded-2xl p-6">
-        <h2 className="font-semibold mb-4 flex items-center gap-2"><Bell className="h-4 w-4" />Notifications</h2>
-        <label className="flex items-center justify-between text-sm">
-          <span>In-app toast notifications</span>
-          <input type="checkbox" checked={notif} onChange={(e) => setNotif(e.target.checked)} className="h-4 w-4" />
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-semibold flex items-center gap-2"><Bell className="h-4 w-4" />Email notifications</h2>
+          <ToggleSwitch checked={prefs.master_enabled} onChange={() => togglePref("master_enabled")} />
+        </div>
+        <p className="text-xs text-muted-foreground mb-5">
+          Master switch — turning this off silences every email TRECK HUB would otherwise send you.
+        </p>
+
+        <div className={`space-y-6 ${prefs.master_enabled ? "" : "opacity-50 pointer-events-none"}`}>
+          <NotifGroup icon={MessageSquare} title="Chat">
+            <NotifRow label="Private messages" description="Someone sends you a DM"
+              checked={prefs.chat_private} onChange={() => togglePref("chat_private")} />
+            <NotifRow label="Group messages" description="Activity in your groups"
+              checked={prefs.chat_groups} onChange={() => togglePref("chat_groups")} />
+            <NotifRow label="Global chat activity" description="Highlights from the Global room"
+              checked={prefs.chat_global} onChange={() => togglePref("chat_global")} />
+          </NotifGroup>
+
+          <NotifGroup icon={Bot} title="AI">
+            <NotifRow label="Daily AI limit reset" description="Off by default — email me when I can prompt again"
+              checked={prefs.ai_reset} onChange={() => togglePref("ai_reset")} />
+          </NotifGroup>
+
+          <NotifGroup icon={Sparkles} title="TRECK updates">
+            <NotifRow label="Product updates & announcements" description="Big platform changes and new features"
+              checked={prefs.updates} onChange={() => togglePref("updates")} />
+          </NotifGroup>
+
+          <NotifGroup icon={Megaphone} title="Marketing">
+            {sub?.isPro ? (
+              <div className="text-xs text-muted-foreground italic">You already have TRECK PRO — no PRO promos will be sent.</div>
+            ) : (
+              <NotifRow label="TRECK PRO offers" description="Occasional discounts on PRO Pass"
+                checked={prefs.marketing_pro} onChange={() => togglePref("marketing_pro")} />
+            )}
+            {sub?.musicPackUnlocked ? (
+              <div className="text-xs text-muted-foreground italic">You already own the Music Pack — no music promos will be sent.</div>
+            ) : (
+              <NotifRow label="Music Bundle offers" description="Deals on the Complete Music Pack"
+                checked={prefs.marketing_music} onChange={() => togglePref("marketing_music")} />
+            )}
+          </NotifGroup>
+        </div>
       </section>
 
       {/* Security */}
@@ -168,7 +294,145 @@ function Settings() {
           <button onClick={deleteAccount} className="inline-flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2 text-sm hover:opacity-90"><Trash2 className="h-4 w-4" />Delete account</button>
         </div>
       </section>
+
+      {showPicker && (
+        <AvatarPicker
+          userId={user.id}
+          onUpload={uploadAvatar}
+          onPick={pickFromLibrary}
+          onClose={() => setShowPicker(false)}
+          uploading={avatarUploading}
+        />
+      )}
     </div>
+  );
+}
+
+function AvatarPicker({
+  userId, onUpload, onPick, onClose, uploading,
+}: {
+  userId: string;
+  onUpload: (file: File) => void;
+  onPick: (path: string) => void;
+  onClose: () => void;
+  uploading: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { data: files = [] } = useQuery({
+    queryKey: ["workspace-images", userId],
+    queryFn: async () => {
+      const { data } = await supabase.from("workspace_files")
+        .select("id, name, storage_path, mime_type")
+        .eq("user_id", userId)
+        .like("mime_type", "image/%")
+        .order("created_at", { ascending: false })
+        .limit(24);
+      return data ?? [];
+    },
+  });
+
+  const [signedMap, setSignedMap] = useState<Record<string, string>>({});
+  useEffect(() => {
+    (async () => {
+      const paths = files.map((f) => f.storage_path);
+      if (!paths.length) return;
+      const { data } = await supabase.storage.from("workspace").createSignedUrls(paths, 3600);
+      const next: Record<string, string> = {};
+      (data ?? []).forEach((r) => { if (r.path && r.signedUrl) next[r.path] = r.signedUrl; });
+      setSignedMap(next);
+    })();
+  }, [files]);
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="glass rounded-2xl p-6 w-full max-w-lg max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-lg">Change profile picture</h2>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-accent text-muted-foreground">✕</button>
+        </div>
+
+        <input ref={inputRef} type="file" accept="image/*" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
+
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="w-full rounded-2xl border-2 border-dashed border-border p-6 flex flex-col items-center gap-2 hover:border-primary hover:bg-accent/40 transition disabled:opacity-50"
+        >
+          {uploading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : <Upload className="h-6 w-6 text-primary" />}
+          <span className="text-sm font-medium">Upload a new picture</span>
+          <span className="text-xs text-muted-foreground">PNG, JPG or GIF — up to 5 MB</span>
+        </button>
+
+        {files.length > 0 && (
+          <>
+            <div className="mt-5 mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+              <ImageIcon className="h-3.5 w-3.5" />
+              Or pick from your Workspace
+            </div>
+            <div className="flex-1 overflow-y-auto grid grid-cols-4 gap-2">
+              {files.map((f) => {
+                const url = signedMap[f.storage_path];
+                return (
+                  <button key={f.id} onClick={() => onPick(f.storage_path)}
+                    disabled={uploading || !url}
+                    className="aspect-square rounded-xl overflow-hidden bg-accent border-2 border-transparent hover:border-primary transition disabled:opacity-50">
+                    {url ? <img src={url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center"><Loader2 className="h-4 w-4 animate-spin" /></div>}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NotifGroup({ icon: Icon, title, children }: { icon: React.ComponentType<{ className?: string }>; title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+        <Icon className="h-3.5 w-3.5" />
+        {title}
+      </div>
+      <div className="space-y-1 rounded-2xl border border-border/60 divide-y divide-border/40 overflow-hidden">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function NotifRow({ label, description, checked, onChange }: { label: string; description: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-accent/30 transition">
+      <div className="min-w-0">
+        <div className="text-sm font-medium">{label}</div>
+        <div className="text-xs text-muted-foreground">{description}</div>
+      </div>
+      <ToggleSwitch checked={checked} onChange={onChange} />
+    </label>
+  );
+}
+
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${
+        checked ? "bg-primary" : "bg-accent"
+      }`}
+    >
+      <motion.span
+        layout
+        className="inline-block h-5 w-5 rounded-full bg-white shadow"
+        style={{ marginLeft: checked ? 22 : 2 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      />
+    </button>
   );
 }
 

@@ -10,6 +10,7 @@ import { ChatTabs } from "@/components/chat-tabs";
 import { ChatComposer } from "@/components/chat-composer";
 import { MessageAttachments } from "@/components/message-attachments";
 import type { ChatAttachment } from "@/lib/chat-attachments";
+import { useTypingIndicator } from "@/hooks/use-typing";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   component: GlobalChat,
@@ -31,9 +32,20 @@ function GlobalChat() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [onlineCount, setOnlineCount] = useState(1);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { data: myProfile } = useQuery({
+    queryKey: ["profile", user.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name, username").eq("id", user.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const { typing, broadcast } = useTypingIndicator("global-chat-typing", {
+    userId: user.id,
+    name: myProfile?.display_name || myProfile?.username || user.email?.split("@")[0] || "Someone",
+  });
 
   const { data: messages = [] } = useQuery({
     queryKey: ["chat-messages"],
@@ -66,12 +78,6 @@ function GlobalChat() {
         const state = channel.presenceState();
         setOnlineCount(Object.keys(state).length);
       })
-      .on("broadcast", { event: "typing" }, (payload) => {
-        const { userId, name } = payload.payload as { userId: string; name: string };
-        if (userId === user.id) return;
-        setTypingUsers((prev) => Array.from(new Set([...prev, name])));
-        setTimeout(() => setTypingUsers((prev) => prev.filter((n) => n !== name)), 2500);
-      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") await channel.track({ online_at: new Date().toISOString() });
       });
@@ -81,7 +87,7 @@ function GlobalChat() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, typing.length]);
 
   const send = async ({ content, attachments }: { content: string; attachments: ChatAttachment[] }) => {
     const { error } = await supabase.from("chat_messages").insert({
@@ -90,16 +96,6 @@ function GlobalChat() {
       attachments: attachments as unknown as never,
     });
     if (error) toast.error(error.message);
-  };
-
-  const broadcastTyping = () => {
-    if (typingTimeout.current) return;
-    const channel = supabase.channel("global-chat");
-    channel.send({
-      type: "broadcast", event: "typing",
-      payload: { userId: user.id, name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Someone" },
-    });
-    typingTimeout.current = setTimeout(() => { typingTimeout.current = null; }, 2000);
   };
 
   const saveEdit = async (id: string) => {
@@ -139,16 +135,16 @@ function GlobalChat() {
           />
         ))}
         <AnimatePresence>
-          {typingUsers.length > 0 && (
+          {typing.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="text-xs text-muted-foreground italic">
-              {typingUsers.join(", ")} typing…
+              {typing.map((t) => t.name).join(", ")} {typing.length === 1 ? "is" : "are"} typing…
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <ChatComposer userId={user.id} placeholder="Say something…" onSend={send} onTyping={broadcastTyping} />
+      <ChatComposer userId={user.id} placeholder="Say something…" onSend={send} onTyping={broadcast} />
     </div>
   );
 }
