@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { ProBadge } from "@/components/pro-badge";
 import { MusicPlayerProvider } from "@/components/music-player-provider";
 import { MiniPlayer } from "@/components/mini-player";
+import logoAsset from "@/assets/treckweb-logo.png.asset.json";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
