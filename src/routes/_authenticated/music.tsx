@@ -93,7 +93,7 @@ function MusicPage() {
             </div>
             <h1 className="mt-4 text-2xl font-bold">Unlock the Music section</h1>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              Get the <b>Complete Music Pack</b> to unlock every current and future song in the TRECK library.
+              Get the <b>Music Pack</b> to unlock every current and future song in the TRECK library.
             </p>
             <Link to="/membership" className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-primary px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--shadow-glow)] hover:opacity-90">
               <Crown className="h-4 w-4" /> Unlock now
