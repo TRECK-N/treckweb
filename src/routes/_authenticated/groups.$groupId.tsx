@@ -20,9 +20,10 @@ interface GroupMsg {
   id: string;
   group_id: string;
   sender_id: string;
-  content: string;
+  content: string | null;
   created_at: string;
   edited_at: string | null;
+  attachments?: ChatAttachment[];
 }
 
 interface Member {
@@ -36,10 +37,8 @@ function GroupConversation() {
   const { user } = Route.useRouteContext();
   const { groupId } = Route.useParams();
   const qc = useQueryClient();
-  const [input, setInput] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [inviting, setInviting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
