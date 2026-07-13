@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useProfiles } from "@/hooks/use-social";
 import { SocialAvatar } from "@/components/social-avatar";
 import { formatDistanceToNow } from "date-fns";
+import { ChatTabs } from "@/components/chat-tabs";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   component: MessagesLayout,
