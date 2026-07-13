@@ -88,7 +88,7 @@ function Dashboard() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { to: "/ai", label: "Ask AI", desc: "Start a new chat", icon: Bot, gradient: "from-violet-500 to-fuchsia-500" },
-            { to: "/chat", label: "Chat", desc: "Talk to friends & groups", icon: MessageCircle, gradient: "from-sky-500 to-cyan-400" },
+            { to: "/chat", label: "Chat", desc: "Talk with friends & the community", icon: MessageCircle, gradient: "from-sky-500 to-cyan-400" },
             { to: "/workspace", label: "Workspace", desc: "Notes & files", icon: FolderOpen, gradient: "from-emerald-500 to-teal-400" },
             { to: "/music", label: "Music", desc: "Focus soundtrack", icon: Music, gradient: "from-fuchsia-500 to-primary" },
           ].map((q, i) => (
