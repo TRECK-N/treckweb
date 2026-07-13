@@ -41,7 +41,7 @@ function MessagesLayout() {
       const map: Record<string, { content: string; created_at: string }> = {};
       (data ?? []).forEach((m) => {
         const other = m.sender_id === user.id ? m.recipient_id : m.sender_id;
-        if (!map[other]) map[other] = { content: m.content, created_at: m.created_at };
+        if (!map[other]) map[other] = { content: m.content ?? "📎 Attachment", created_at: m.created_at };
       });
       return map;
     },
