@@ -185,14 +185,19 @@ function GroupConversation() {
                     <button onClick={() => setEditingId(null)} className="text-xs text-muted-foreground hover:underline">Cancel</button>
                   </div>
                 ) : (
-                  <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
-                    isOwn ? "bg-primary text-primary-foreground" : "glass"
-                  }`}>{m.content}</div>
+                  <>
+                    {m.content && (
+                      <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+                        isOwn ? "bg-primary text-primary-foreground" : "glass"
+                      }`}>{m.content}</div>
+                    )}
+                    <MessageAttachments items={(m.attachments || []) as ChatAttachment[]} />
+                  </>
                 )}
                 {!editing && (isOwn || canDelete) && (
                   <div className="mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                    {isOwn && (
-                      <button onClick={() => { setEditingId(m.id); setEditText(m.content); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>
+                    {isOwn && m.content && (
+                      <button onClick={() => { setEditingId(m.id); setEditText(m.content ?? ""); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>
                     )}
                     {canDelete && (
                       <button onClick={() => del(m.id)} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
@@ -210,35 +215,7 @@ function GroupConversation() {
         )}
       </div>
 
-      <div className="border-t border-border/60 p-4">
-        <div className="max-w-3xl mx-auto relative">
-          {showEmoji && (
-            <div className="absolute bottom-14 left-0 glass rounded-2xl p-2 grid grid-cols-6 gap-1 z-10">
-              {EMOJIS.map((e) => (
-                <button key={e} className="text-xl hover:bg-accent rounded-lg p-1" onClick={() => { setInput((p) => p + e); setShowEmoji(false); }}>{e}</button>
-              ))}
-            </div>
-          )}
-          <div className="glass rounded-2xl flex items-center gap-1 p-1.5">
-            <button onClick={() => setShowEmoji((s) => !s)} className="p-2 rounded-lg hover:bg-accent text-muted-foreground" aria-label="Emoji">
-              <Smile className="h-4 w-4" />
-            </button>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); send(); } }}
-              placeholder={`Message ${group?.name || "group"}…`}
-              className="flex-1 bg-transparent px-2 py-2 text-sm outline-none"
-              autoFocus
-            />
-            <button onClick={send} disabled={!input.trim()}
-              className="h-9 w-9 rounded-xl bg-primary text-primary-foreground grid place-items-center hover:opacity-90 transition disabled:opacity-40 shadow-[var(--shadow-glow)]"
-              aria-label="Send">
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <ChatComposer userId={user.id} placeholder={`Message ${group?.name || "group"}…`} onSend={send} />
 
       {showMembers && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowMembers(false)}>
