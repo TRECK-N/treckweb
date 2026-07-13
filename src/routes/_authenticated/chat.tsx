@@ -3,32 +3,33 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Send, Smile, Pencil, Trash2, Users } from "lucide-react";
+import { Pencil, Trash2, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { ChatTabs } from "@/components/chat-tabs";
+import { ChatComposer } from "@/components/chat-composer";
+import { MessageAttachments } from "@/components/message-attachments";
+import type { ChatAttachment } from "@/lib/chat-attachments";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   component: GlobalChat,
 });
 
-const EMOJIS = ["😀", "😂", "😍", "🔥", "🎉", "👍", "❤️", "🚀", "💯", "🙌", "🤔", "😎"];
-
 interface ChatMsg {
   id: string;
   user_id: string;
-  content: string;
+  content: string | null;
   created_at: string;
   edited_at: string | null;
+  attachments?: ChatAttachment[];
   profiles?: { display_name: string | null; avatar_url: string | null } | null;
 }
 
 function GlobalChat() {
   const { user } = Route.useRouteContext();
   const qc = useQueryClient();
-  const [input, setInput] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
   const [onlineCount, setOnlineCount] = useState(1);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -45,14 +46,10 @@ function GlobalChat() {
         ? await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds)
         : { data: [] as Array<{ id: string; display_name: string | null; avatar_url: string | null }> };
       const map = new Map((profs ?? []).map((p) => [p.id, p]));
-      return rows.map((r) => ({
-        ...r,
-        profiles: map.get(r.user_id) ?? null,
-      })) as ChatMsg[];
+      return rows.map((r) => ({ ...r, profiles: map.get(r.user_id) ?? null })) as ChatMsg[];
     },
   });
 
-  // Realtime subscription + presence
   useEffect(() => {
     const channel = supabase.channel("global-chat", { config: { presence: { key: user.id } } })
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_messages" }, async (payload) => {
@@ -86,11 +83,12 @@ function GlobalChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const send = async () => {
-    if (!input.trim()) return;
-    const text = input.trim();
-    setInput("");
-    const { error } = await supabase.from("chat_messages").insert({ user_id: user.id, content: text });
+  const send = async ({ content, attachments }: { content: string; attachments: ChatAttachment[] }) => {
+    const { error } = await supabase.from("chat_messages").insert({
+      user_id: user.id,
+      content: content || null,
+      attachments: attachments as unknown as never,
+    });
     if (error) toast.error(error.message);
   };
 
@@ -117,7 +115,8 @@ function GlobalChat() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)] lg:h-screen">
-      <header className="border-b border-border/60 px-6 py-4 flex items-center justify-between glass">
+      <ChatTabs />
+      <header className="border-b border-border/60 px-6 py-3 flex items-center justify-between glass">
         <div>
           <h1 className="font-bold text-lg">Global Chat</h1>
           <p className="text-xs text-muted-foreground">Talk to everyone on TreckWeb</p>
@@ -133,7 +132,7 @@ function GlobalChat() {
           <MessageRow key={m.id} m={m} isOwn={m.user_id === user.id}
             editing={editingId === m.id} editText={editText}
             setEditText={setEditText}
-            onStartEdit={() => { setEditingId(m.id); setEditText(m.content); }}
+            onStartEdit={() => { setEditingId(m.id); setEditText(m.content ?? ""); }}
             onCancelEdit={() => setEditingId(null)}
             onSaveEdit={() => saveEdit(m.id)}
             onDelete={() => del(m.id)}
@@ -149,38 +148,7 @@ function GlobalChat() {
         </AnimatePresence>
       </div>
 
-      <div className="border-t border-border/60 p-4">
-        <div className="max-w-3xl mx-auto relative">
-          <AnimatePresence>
-            {showEmoji && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-14 left-0 glass rounded-2xl p-2 grid grid-cols-6 gap-1">
-                {EMOJIS.map((e) => (
-                  <button key={e} className="text-xl hover:bg-accent rounded-lg p-1" onClick={() => { setInput((p) => p + e); setShowEmoji(false); }}>{e}</button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div className="glass rounded-2xl flex items-center gap-1 p-1.5">
-            <button onClick={() => setShowEmoji((s) => !s)} className="p-2 rounded-lg hover:bg-accent text-muted-foreground" aria-label="Emoji">
-              <Smile className="h-4 w-4" />
-            </button>
-            <input
-              value={input}
-              onChange={(e) => { setInput(e.target.value); broadcastTyping(); }}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); send(); } }}
-              placeholder="Say something…"
-              className="flex-1 bg-transparent px-2 py-2 text-sm outline-none"
-              autoFocus
-            />
-            <button onClick={send} disabled={!input.trim()}
-              className="h-9 w-9 rounded-xl bg-primary text-primary-foreground grid place-items-center hover:opacity-90 transition disabled:opacity-40 shadow-[var(--shadow-glow)]"
-              aria-label="Send">
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <ChatComposer userId={user.id} placeholder="Say something…" onSend={send} onTyping={broadcastTyping} />
     </div>
   );
 }
@@ -194,6 +162,7 @@ function MessageRow({
 }) {
   const name = m.profiles?.display_name || "User";
   const initials = name.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+  const atts = (m.attachments || []) as ChatAttachment[];
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
       className={`group flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
@@ -213,13 +182,18 @@ function MessageRow({
             <button onClick={onCancelEdit} className="text-xs text-muted-foreground hover:underline">Cancel</button>
           </div>
         ) : (
-          <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
-            isOwn ? "bg-primary text-primary-foreground" : "glass"
-          }`}>{m.content}</div>
+          <>
+            {m.content && (
+              <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+                isOwn ? "bg-primary text-primary-foreground" : "glass"
+              }`}>{m.content}</div>
+            )}
+            <MessageAttachments items={atts} />
+          </>
         )}
         {isOwn && !editing && (
           <div className="mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-            <button onClick={onStartEdit} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>
+            {m.content && <button onClick={onStartEdit} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>}
             <button onClick={onDelete} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
           </div>
         )}
