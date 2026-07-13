@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Crown, Check, Loader2, Sparkles, Music, Bot, Users, MessageCircle } from "lucide-react";
+import { Crown, Check, Loader2, Sparkles, Music, Bot, Image as ImageIcon, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 
@@ -21,10 +21,10 @@ const PLANS: { months: number; label: string; save?: string }[] = [
 const DISCOUNTS: Record<number, number> = { 1: 1, 3: 0.9, 6: 0.8, 12: 0.67 };
 
 const BENEFITS = [
-  { icon: Bot, title: "Unlimited AI", desc: "No limits on messages, file uploads, images, and camera analysis." },
-  { icon: MessageCircle, title: "Attachments in chats", desc: "Send images and files in private messages and groups." },
-  { icon: Users, title: "Create groups", desc: "Build unlimited group chats and manage members." },
-  { icon: Music, title: "Premium music", desc: "Early access to premium tracks as the library expands." },
+  { icon: Bot, title: "2× daily AI messages", desc: "10 AI prompts per day, twice the Standard limit." },
+  { icon: Paperclip, title: "AI file uploads", desc: "Attach PDFs and documents to your AI chats." },
+  { icon: ImageIcon, title: "AI image analysis", desc: "Send photos and images to the AI for analysis." },
+  { icon: Sparkles, title: "Priority PRO features", desc: "Early access to new PRO capabilities as they launch." },
 ];
 
 function priceFor(months: number) {
