@@ -79,10 +79,8 @@ function MusicPage() {
     qc.invalidateQueries({ queryKey: ["song-likes", user.id] });
   };
 
-  const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = Number(e.target.value);
-    player.seek(v);
-  };
+
+
 
   if (!sub?.musicPackUnlocked) {
     return (
