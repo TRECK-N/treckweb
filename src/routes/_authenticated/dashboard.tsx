@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, MessageCircle, FolderOpen, Music, Sparkles, TrendingUp, Users, Crown, Zap } from "lucide-react";
+import { Bot, MessageCircle, FolderOpen, Music, Sparkles, TrendingUp, Users, Crown, Zap, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useDailyAiUsage } from "@/hooks/use-daily-ai-usage";
