@@ -134,9 +134,8 @@ function Settings() {
     navigate({ to: "/auth", replace: true });
   };
 
-  const togglePref = (key: keyof NotificationPrefs) => {
-    updatePrefs.mutate({ [key]: !prefs[key] });
-  };
+
+
 
   if (isLoading) {
     return <div className="grid place-items-center h-screen"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
