@@ -4,10 +4,9 @@ import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
-import { useMusicPlayer, formatTime, type Song } from "@/components/music-player-provider";
+import { useMusicPlayer, type Song } from "@/components/music-player-provider";
 import {
-  Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Volume2, VolumeX,
-  Search, Music as MusicIcon, Clock, Crown,
+  Play, Pause, Heart, Search, Music as MusicIcon, Crown,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/music")({
