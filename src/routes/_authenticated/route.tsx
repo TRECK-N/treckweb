@@ -131,7 +131,7 @@ function SidebarInner({
 
       <nav className="mt-6 flex flex-col gap-1">
         {NAV.map((item) => {
-          const isChat = item.to === "/chat" && (pathname.startsWith("/chat") || pathname.startsWith("/messages") || pathname.startsWith("/groups"));
+          const isChat = item.to === "/chat" && (pathname.startsWith("/chat") || pathname.startsWith("/messages"));
           const active = isChat || pathname === item.to || (item.to !== "/dashboard" && item.to !== "/chat" && pathname.startsWith(item.to));
           return (
             <Link
