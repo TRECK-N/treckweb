@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, MessageCircle, FolderOpen, ShoppingBag, Bot } from "lucide-react";
+import { ArrowRight, Sparkles, MessageCircle, FolderOpen, Music, Bot } from "lucide-react";
 import auroraBg from "@/assets/aurora-bg.jpg";
 
 export const Route = createFileRoute("/")({
