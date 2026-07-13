@@ -22,7 +22,7 @@ interface Results {
   groups: Array<{ id: string; name: string; description: string | null; avatar_url: string | null; is_public: boolean | null }>;
   music: Song[];
   notes: Array<{ id: string; title: string; content: string | null; updated_at: string }>;
-  files: Array<{ id: string; name: string; storage_path: string; mime_type: string; size: number }>;
+  files: Array<{ id: string; name: string; storage_path: string; mime_type: string | null; size: number | null }>;
   messages: Array<{ id: string; kind: "dm" | "group" | "global"; content: string; created_at: string; contextId?: string; contextName?: string }>;
 }
 
@@ -355,7 +355,7 @@ function SearchPage() {
                             <div className="min-w-0 flex-1">
                               <div className="font-medium text-sm truncate">{f.name}</div>
                               <div className="text-xs text-muted-foreground truncate">
-                                {(f.size / 1024).toFixed(1)} KB · {f.mime_type}
+                                {((f.size ?? 0) / 1024).toFixed(1)} KB · {f.mime_type ?? "file"}
                               </div>
                             </div>
                           </Link>
