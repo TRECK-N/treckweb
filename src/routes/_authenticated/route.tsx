@@ -99,7 +99,7 @@ function AuthLayout() {
               <Menu className="h-5 w-5" />
             </button>
             <Link to="/dashboard" className="flex items-center gap-2 font-bold">
-              <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-primary-glow" />
+              <img src={logoAsset.url} alt="TreckWeb" className="h-8 w-8 rounded-full object-cover ring-1 ring-primary/40" />
               TreckWeb
             </Link>
             <div className="w-9" />
