@@ -107,7 +107,6 @@ function MusicPage() {
   }
 
   const current = player.current;
-  const displayDuration = player.duration || current?.duration_seconds || 0;
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)] lg:h-screen">
