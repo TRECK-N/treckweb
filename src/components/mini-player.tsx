@@ -13,11 +13,11 @@ export function MiniPlayer() {
     <AnimatePresence>
       {current && !hideOnMusic && (
         <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed z-40 left-1/2 -translate-x-1/2 bottom-4 lg:bottom-6 w-[min(720px,calc(100%-1.5rem))]"
+          initial={{ y: 40, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 40, opacity: 0, scale: 0.95 }}
+          transition={{ type: "spring", damping: 25, stiffness: 320 }}
+          className="fixed z-40 left-3 lg:left-[248px] bottom-24 lg:bottom-28 w-[min(320px,calc(100%-1.5rem))]"
         >
           <div className="glass rounded-2xl shadow-[var(--shadow-glow)] border border-border/60 backdrop-blur-xl">
             <div className="relative">
