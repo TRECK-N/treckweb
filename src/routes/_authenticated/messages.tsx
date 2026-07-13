@@ -101,6 +101,7 @@ function MessagesLayout() {
       <main className="flex-1 min-w-0 hidden md:flex flex-col">
         <Outlet />
       </main>
+      </div>
     </div>
   );
 }
