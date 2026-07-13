@@ -27,19 +27,19 @@ function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ["stats", user.id],
     queryFn: async () => {
-      const [threads, notes, folders, friends, groups] = await Promise.all([
+      const [threads, notes, folders, friends, likes] = await Promise.all([
         supabase.from("ai_threads").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("notes").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("folders").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("friendships").select("id", { count: "exact", head: true }).eq("status", "accepted").or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),
-        supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("song_likes").select("song_id", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       return {
         threads: threads.count || 0,
         notes: notes.count || 0,
         folders: folders.count || 0,
         friends: friends.count || 0,
-        groups: groups.count || 0,
+        likes: likes.count || 0,
       };
     },
   });
