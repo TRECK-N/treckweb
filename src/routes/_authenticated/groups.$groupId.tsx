@@ -64,6 +64,11 @@ function GroupConversation() {
   const { data: memberProfiles = new Map() } = useProfiles(memberIds);
   const myMembership = members.find((m) => m.user_id === user.id);
   const canAdmin = myMembership?.role === "owner" || myMembership?.role === "admin";
+  const me = memberProfiles.get(user.id);
+  const { typing, broadcast } = useTypingIndicator(`group-typing-${groupId}`, {
+    userId: user.id,
+    name: me?.display_name || me?.username || "Someone",
+  });
 
   const msgKey = ["group-messages", groupId];
   const { data: messages = [] } = useQuery({
