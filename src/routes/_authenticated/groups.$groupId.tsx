@@ -71,7 +71,7 @@ function GroupConversation() {
       const { data } = await supabase
         .from("group_messages").select("*").eq("group_id", groupId)
         .order("created_at", { ascending: true }).limit(200);
-      return (data ?? []) as GroupMsg[];
+      return (data ?? []) as unknown as GroupMsg[];
     },
   });
 
