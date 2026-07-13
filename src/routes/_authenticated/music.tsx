@@ -161,37 +161,31 @@ function MusicPage() {
             </div>
           ) : (
             <div className="glass rounded-2xl overflow-hidden">
-              <div className="hidden md:grid grid-cols-[3rem_1fr_1fr_5rem_3rem] gap-4 px-4 py-3 text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border/60">
-                <div>#</div>
-                <div>Title</div>
-                <div>Album</div>
-                <div className="text-center"><Clock className="h-3.5 w-3.5 inline" /></div>
-                <div></div>
-              </div>
-              {displayed.map((s, i) => {
+              {displayed.map((s) => {
                 const isCurrent = current?.id === s.id;
                 return (
                   <div key={s.id}
                     onDoubleClick={() => playSong(s)}
-                    className={`group grid grid-cols-[3rem_1fr_3rem] md:grid-cols-[3rem_1fr_1fr_5rem_3rem] gap-4 items-center px-4 py-2.5 border-b border-border/40 last:border-0 hover:bg-accent/40 transition ${isCurrent ? "bg-primary/5" : ""}`}>
-                    <button onClick={() => isCurrent ? player.toggle() : playSong(s)}
-                      className="h-9 w-9 rounded-lg grid place-items-center text-muted-foreground group-hover:text-foreground">
-                      {isCurrent && player.playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    </button>
-                    <div className="min-w-0">
-                      <div className={`font-medium text-sm truncate ${isCurrent ? "text-primary" : ""}`}>{s.title}</div>
-                      <div className="text-xs text-muted-foreground truncate">{s.artist}</div>
+                    className={`group flex items-center gap-4 px-4 py-3 border-b border-border/40 last:border-0 hover:bg-accent/40 transition ${isCurrent ? "bg-primary/5" : ""}`}>
+                    <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-fuchsia-500 to-primary grid place-items-center text-white overflow-hidden">
+                      {s.cover_url
+                        ? <img src={s.cover_url} alt="" className="h-full w-full object-cover" />
+                        : <MusicIcon className="h-4 w-4" />}
                     </div>
-                    <div className="hidden md:block text-sm text-muted-foreground truncate">{s.album || "—"}</div>
-                    <div className="hidden md:block text-xs text-muted-foreground text-center tabular-nums">
-                      {s.duration_seconds ? formatTime(s.duration_seconds) : "—"}
+                    <button onClick={() => isCurrent ? player.toggle() : playSong(s)}
+                      className="h-9 w-9 shrink-0 rounded-full bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary grid place-items-center transition"
+                      aria-label={isCurrent && player.playing ? "Pause" : "Play"}>
+                      {isCurrent && player.playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-[1px]" />}
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-medium text-sm truncate ${isCurrent ? "text-primary" : ""}`}>{s.title}</div>
+                      {s.artist && <div className="text-xs text-muted-foreground truncate">{s.artist}</div>}
                     </div>
                     <button onClick={() => toggleLike(s.id)}
-                      className={`h-9 w-9 rounded-lg grid place-items-center transition ${likeSet.has(s.id) ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`h-9 w-9 shrink-0 rounded-lg grid place-items-center transition ${likeSet.has(s.id) ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
                       aria-label="Like">
                       <Heart className={`h-4 w-4 ${likeSet.has(s.id) ? "fill-current" : ""}`} />
                     </button>
-                    <div className="md:hidden col-span-3 text-[10px] text-muted-foreground">{i + 1}</div>
                   </div>
                 );
               })}
@@ -199,71 +193,6 @@ function MusicPage() {
           )}
         </div>
       </div>
-
-      {current && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          className="border-t border-border/60 glass"
-        >
-          <div className="px-4 lg:px-8 py-3">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-fuchsia-500 to-primary grid place-items-center text-white overflow-hidden">
-                  {current.cover_url ? <img src={current.cover_url} alt="" className="h-full w-full object-cover" /> : <MusicIcon className="h-5 w-5" />}
-                </div>
-                <div className="min-w-0 hidden sm:block">
-                  <div className="font-medium text-sm truncate">{current.title}</div>
-                  <div className="text-xs text-muted-foreground truncate">{current.artist}</div>
-                </div>
-                <button onClick={() => toggleLike(current.id)}
-                  className={`p-2 rounded-lg transition ${likeSet.has(current.id) ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}>
-                  <Heart className={`h-4 w-4 ${likeSet.has(current.id) ? "fill-current" : ""}`} />
-                </button>
-              </div>
-
-              <div className="flex-1 flex flex-col items-center gap-1.5 max-w-lg">
-                <div className="flex items-center gap-2">
-                  <button onClick={player.toggleShuffle}
-                    className={`p-2 rounded-lg transition ${player.shuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                    <Shuffle className="h-4 w-4" />
-                  </button>
-                  <button onClick={player.prev} className="p-2 rounded-lg text-muted-foreground hover:text-foreground">
-                    <SkipBack className="h-4 w-4" />
-                  </button>
-                  <button onClick={player.toggle}
-                    className="h-10 w-10 rounded-full bg-primary text-primary-foreground grid place-items-center hover:opacity-90 shadow-[var(--shadow-glow)]">
-                    {player.playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-[1px]" />}
-                  </button>
-                  <button onClick={player.next} className="p-2 rounded-lg text-muted-foreground hover:text-foreground">
-                    <SkipForward className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={player.cycleRepeat}
-                    className={`p-2 rounded-lg transition ${player.repeat !== "off" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                    {player.repeat === "one" ? <Repeat1 className="h-4 w-4" /> : <Repeat className="h-4 w-4" />}
-                  </button>
-                </div>
-                <div className="flex items-center gap-3 w-full">
-                  <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">
-                    {formatTime(player.progress)} / {formatTime(displayDuration)}
-                  </span>
-                  <input type="range" min={0} max={displayDuration || 0} step="0.1" value={player.progress} onChange={seek}
-                    className="flex-1 accent-primary h-1" />
-                </div>
-              </div>
-
-              <div className="hidden md:flex items-center gap-2 flex-1 justify-end max-w-[180px]">
-                <button onClick={player.toggleMute} className="p-2 rounded-lg text-muted-foreground hover:text-foreground">
-                  {player.muted || player.volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </button>
-                <input type="range" min={0} max={1} step={0.01} value={player.muted ? 0 : player.volume}
-                  onChange={(e) => player.setVolume(Number(e.target.value))}
-                  className="flex-1 accent-primary h-1" />
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
