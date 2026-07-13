@@ -75,21 +75,24 @@ export type Database = {
       }
       chat_messages: {
         Row: {
-          content: string
+          attachments: Json
+          content: string | null
           created_at: string
           edited_at: string | null
           id: string
           user_id: string
         }
         Insert: {
-          content: string
+          attachments?: Json
+          content?: string | null
           created_at?: string
           edited_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
-          content?: string
+          attachments?: Json
+          content?: string | null
           created_at?: string
           edited_at?: string | null
           id?: string
@@ -99,7 +102,8 @@ export type Database = {
       }
       direct_messages: {
         Row: {
-          content: string
+          attachments: Json
+          content: string | null
           created_at: string
           edited_at: string | null
           id: string
@@ -108,7 +112,8 @@ export type Database = {
           sender_id: string
         }
         Insert: {
-          content: string
+          attachments?: Json
+          content?: string | null
           created_at?: string
           edited_at?: string | null
           id?: string
@@ -117,7 +122,8 @@ export type Database = {
           sender_id: string
         }
         Update: {
-          content?: string
+          attachments?: Json
+          content?: string | null
           created_at?: string
           edited_at?: string | null
           id?: string
@@ -184,6 +190,73 @@ export type Database = {
         }
         Relationships: []
       }
+      group_invitations: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          invited_by: string
+          invited_user_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          invited_by: string
+          invited_user_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          invited_by?: string
+          invited_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invitations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_join_requests: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -218,7 +291,8 @@ export type Database = {
       }
       group_messages: {
         Row: {
-          content: string
+          attachments: Json
+          content: string | null
           created_at: string
           edited_at: string | null
           group_id: string
@@ -226,7 +300,8 @@ export type Database = {
           sender_id: string
         }
         Insert: {
-          content: string
+          attachments?: Json
+          content?: string | null
           created_at?: string
           edited_at?: string | null
           group_id: string
@@ -234,7 +309,8 @@ export type Database = {
           sender_id: string
         }
         Update: {
-          content?: string
+          attachments?: Json
+          content?: string | null
           created_at?: string
           edited_at?: string | null
           group_id?: string
@@ -257,6 +333,8 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_public: boolean
+          join_policy: string
           name: string
           owner_id: string
           updated_at: string
@@ -266,6 +344,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_public?: boolean
+          join_policy?: string
           name: string
           owner_id: string
           updated_at?: string
@@ -275,6 +355,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_public?: boolean
+          join_policy?: string
           name?: string
           owner_id?: string
           updated_at?: string
@@ -457,6 +539,94 @@ export type Database = {
           months?: number | null
           product_kind?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recently_played: {
+        Row: {
+          id: string
+          played_at: string
+          song_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          played_at?: string
+          song_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          played_at?: string
+          song_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recently_played_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      song_likes: {
+        Row: {
+          created_at: string
+          song_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          song_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          song_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "song_likes_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      songs: {
+        Row: {
+          album: string | null
+          artist: string
+          audio_url: string
+          cover_url: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          title: string
+        }
+        Insert: {
+          album?: string | null
+          artist: string
+          audio_url: string
+          cover_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          title: string
+        }
+        Update: {
+          album?: string | null
+          artist?: string
+          audio_url?: string
+          cover_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          title?: string
         }
         Relationships: []
       }

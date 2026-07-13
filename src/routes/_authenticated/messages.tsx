@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useProfiles } from "@/hooks/use-social";
 import { SocialAvatar } from "@/components/social-avatar";
 import { formatDistanceToNow } from "date-fns";
+import { ChatTabs } from "@/components/chat-tabs";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   component: MessagesLayout,
@@ -41,14 +42,16 @@ function MessagesLayout() {
       const map: Record<string, { content: string; created_at: string }> = {};
       (data ?? []).forEach((m) => {
         const other = m.sender_id === user.id ? m.recipient_id : m.sender_id;
-        if (!map[other]) map[other] = { content: m.content, created_at: m.created_at };
+        if (!map[other]) map[other] = { content: m.content ?? "📎 Attachment", created_at: m.created_at };
       });
       return map;
     },
   });
 
   return (
-    <div className="flex h-[calc(100vh-56px)] lg:h-screen">
+    <div className="flex flex-col h-[calc(100vh-56px)] lg:h-screen">
+      <ChatTabs />
+      <div className="flex flex-1 min-h-0">
       <aside className="w-full md:w-80 border-r border-border/60 flex flex-col bg-sidebar/40">
         <header className="px-4 py-4 border-b border-border/60">
           <h1 className="font-bold text-lg">Messages</h1>
@@ -99,6 +102,7 @@ function MessagesLayout() {
       <main className="flex-1 min-w-0 hidden md:flex flex-col">
         <Outlet />
       </main>
+      </div>
     </div>
   );
 }

@@ -79,9 +79,9 @@ function Membership() {
       .update({ music_pack_unlocked: true }).eq("id", user.id);
     if (error) { toast.error(error.message); setProcessing(null); return; }
     await supabase.from("purchases").insert({
-      user_id: user.id, product_kind: "music_pack", amount: 5,
+      user_id: user.id, product_kind: "music_pack", amount: 9,
     });
-    toast.success("Music Pack unlocked forever 🎵");
+    toast.success("Complete Music Pack unlocked forever 🎵");
     await refetch();
     qc.invalidateQueries({ queryKey: ["purchases", user.id] });
     qc.invalidateQueries({ queryKey: ["subscription", user.id] });
@@ -187,7 +187,7 @@ function Membership() {
         </button>
       </div>
 
-      {/* Music pack */}
+      {/* Complete Music Pack */}
       <div className="glass rounded-3xl p-6 lg:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -195,17 +195,18 @@ function Membership() {
               <Music className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">TRECK Extra Music Pack</h2>
-              <p className="text-sm text-muted-foreground">Unlock 50% more music, permanently.</p>
+              <h2 className="text-xl font-bold">Complete Music Pack</h2>
+              <p className="text-sm text-muted-foreground">Unlock the entire music library — every current and future track.</p>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold">$5</div>
+            <div className="text-2xl font-bold">$9</div>
             <div className="text-xs text-muted-foreground">One time</div>
           </div>
         </div>
         <ul className="mt-4 text-sm space-y-1.5">
-          <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Unlocks 50% of the music library</li>
+          <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Unlocks the full Music section</li>
+          <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Every current & future song included</li>
           <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Permanent access — never expires</li>
           <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Works alongside TRECK PRO</li>
         </ul>
@@ -215,7 +216,7 @@ function Membership() {
           className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-[var(--shadow-glow)] hover:opacity-95 disabled:opacity-50"
         >
           {processing === "music" ? <Loader2 className="h-4 w-4 animate-spin" /> : sub?.musicPackUnlocked ? <Check className="h-4 w-4" /> : <Music className="h-4 w-4" />}
-          {sub?.musicPackUnlocked ? "Already unlocked" : "Unlock Music Pack — $5"}
+          {sub?.musicPackUnlocked ? "Already unlocked" : "Unlock Complete Music Pack — $9"}
         </button>
       </div>
 
@@ -230,7 +231,7 @@ function Membership() {
               <div key={h.id} className="flex items-center justify-between py-3">
                 <div>
                   <div className="font-medium text-sm">
-                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Extra Music Pack"}
+                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Complete Music Pack"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(h.created_at).toLocaleString()}

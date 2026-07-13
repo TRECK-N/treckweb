@@ -2,8 +2,8 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home, Bot, MessageCircle, FolderOpen, ShoppingBag, Settings, LogOut, Menu, Sun, Moon, Crown,
-  Users, Send, UserPlus,
+  Home, Bot, MessageCircle, FolderOpen, Settings, LogOut, Menu, Sun, Moon, Crown,
+  UserPlus, Music,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,11 +26,9 @@ const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/ai", label: "AI Assistant", icon: Bot },
   { to: "/friends", label: "Friends", icon: UserPlus },
-  { to: "/messages", label: "Messages", icon: Send },
-  { to: "/groups", label: "Groups", icon: Users },
-  { to: "/chat", label: "Global Chat", icon: MessageCircle },
+  { to: "/chat", label: "Chat", icon: MessageCircle },
+  { to: "/music", label: "Music", icon: Music },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
-  { to: "/store", label: "Store", icon: ShoppingBag },
   { to: "/membership", label: "Membership", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -129,7 +127,8 @@ function SidebarInner({
 
       <nav className="mt-6 flex flex-col gap-1">
         {NAV.map((item) => {
-          const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
+          const isChat = item.to === "/chat" && (pathname.startsWith("/chat") || pathname.startsWith("/messages") || pathname.startsWith("/groups"));
+          const active = isChat || pathname === item.to || (item.to !== "/dashboard" && item.to !== "/chat" && pathname.startsWith(item.to));
           return (
             <Link
               key={item.to} to={item.to}

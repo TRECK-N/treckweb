@@ -3,35 +3,35 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Send, Smile, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfiles } from "@/hooks/use-social";
 import { SocialAvatar } from "@/components/social-avatar";
 import { formatDistanceToNow } from "date-fns";
+import { ChatComposer } from "@/components/chat-composer";
+import { MessageAttachments } from "@/components/message-attachments";
+import type { ChatAttachment } from "@/lib/chat-attachments";
 
 export const Route = createFileRoute("/_authenticated/messages/$userId")({
   component: DMConversation,
 });
 
-const EMOJIS = ["😀", "😂", "😍", "🔥", "🎉", "👍", "❤️", "🚀", "💯", "🙌", "🤔", "😎"];
-
 interface DM {
   id: string;
   sender_id: string;
   recipient_id: string;
-  content: string;
+  content: string | null;
   created_at: string;
   edited_at: string | null;
+  attachments?: ChatAttachment[];
 }
 
 function DMConversation() {
   const { user } = Route.useRouteContext();
   const { userId: otherId } = Route.useParams();
   const qc = useQueryClient();
-  const [input, setInput] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: profileMap = new Map() } = useProfiles([otherId]);
@@ -44,40 +44,30 @@ function DMConversation() {
       const { data } = await supabase
         .from("direct_messages")
         .select("*")
-        .or(
-          `and(sender_id.eq.${user.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${user.id})`,
-        )
+        .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${user.id})`)
         .order("created_at", { ascending: true })
         .limit(200);
-      return (data ?? []) as DM[];
+      return (data ?? []) as unknown as DM[];
     },
   });
 
   useEffect(() => {
     const channel = supabase
       .channel(`dm-${[user.id, otherId].sort().join("-")}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "direct_messages" },
-        (payload) => {
-          const row = (payload.new ?? payload.old) as DM;
-          const involves =
-            (row.sender_id === user.id && row.recipient_id === otherId) ||
-            (row.sender_id === otherId && row.recipient_id === user.id);
-          if (!involves) return;
-          if (payload.eventType === "INSERT") {
-            qc.setQueryData<DM[]>(queryKey, (prev = []) =>
-              prev.some((m) => m.id === row.id) ? prev : [...prev, row],
-            );
-          } else if (payload.eventType === "UPDATE") {
-            qc.setQueryData<DM[]>(queryKey, (prev = []) =>
-              prev.map((m) => (m.id === row.id ? { ...m, ...row } : m)),
-            );
-          } else if (payload.eventType === "DELETE") {
-            qc.setQueryData<DM[]>(queryKey, (prev = []) => prev.filter((m) => m.id !== row.id));
-          }
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "direct_messages" }, (payload) => {
+        const row = (payload.new ?? payload.old) as DM;
+        const involves =
+          (row.sender_id === user.id && row.recipient_id === otherId) ||
+          (row.sender_id === otherId && row.recipient_id === user.id);
+        if (!involves) return;
+        if (payload.eventType === "INSERT") {
+          qc.setQueryData<DM[]>(queryKey, (prev = []) => prev.some((m) => m.id === row.id) ? prev : [...prev, row]);
+        } else if (payload.eventType === "UPDATE") {
+          qc.setQueryData<DM[]>(queryKey, (prev = []) => prev.map((m) => (m.id === row.id ? { ...m, ...row } : m)));
+        } else if (payload.eventType === "DELETE") {
+          qc.setQueryData<DM[]>(queryKey, (prev = []) => prev.filter((m) => m.id !== row.id));
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,12 +77,11 @@ function DMConversation() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const send = async () => {
-    if (!input.trim()) return;
-    const text = input.trim();
-    setInput("");
+  const send = async ({ content, attachments }: { content: string; attachments: ChatAttachment[] }) => {
     const { error } = await supabase.from("direct_messages").insert({
-      sender_id: user.id, recipient_id: otherId, content: text,
+      sender_id: user.id, recipient_id: otherId,
+      content: content || null,
+      attachments: attachments as unknown as never,
     });
     if (error) toast.error(error.message);
   };
@@ -126,13 +115,10 @@ function DMConversation() {
           const isOwn = m.sender_id === user.id;
           const p = isOwn ? null : other;
           const editing = editingId === m.id;
+          const atts = (m.attachments || []) as ChatAttachment[];
           return (
-            <motion.div
-              key={m.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`group flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}
-            >
+            <motion.div key={m.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              className={`group flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
               <SocialAvatar profile={p} size={36} />
               <div className={`max-w-[75%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}>
                 <div className={`flex items-center gap-2 text-[11px] text-muted-foreground mb-1 ${isOwn ? "flex-row-reverse" : ""}`}>
@@ -147,13 +133,18 @@ function DMConversation() {
                     <button onClick={() => setEditingId(null)} className="text-xs text-muted-foreground hover:underline">Cancel</button>
                   </div>
                 ) : (
-                  <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
-                    isOwn ? "bg-primary text-primary-foreground" : "glass"
-                  }`}>{m.content}</div>
+                  <>
+                    {m.content && (
+                      <div className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+                        isOwn ? "bg-primary text-primary-foreground" : "glass"
+                      }`}>{m.content}</div>
+                    )}
+                    <MessageAttachments items={atts} />
+                  </>
                 )}
                 {isOwn && !editing && (
                   <div className="mt-1 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                    <button onClick={() => { setEditingId(m.id); setEditText(m.content); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>
+                    {m.content && <button onClick={() => { setEditingId(m.id); setEditText(m.content ?? ""); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"><Pencil className="h-3 w-3" />Edit</button>}
                     <button onClick={() => del(m.id)} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
                   </div>
                 )}
@@ -162,41 +153,11 @@ function DMConversation() {
           );
         })}
         {messages.length === 0 && (
-          <div className="text-center text-sm text-muted-foreground py-10">
-            No messages yet — say hi!
-          </div>
+          <div className="text-center text-sm text-muted-foreground py-10">No messages yet — say hi!</div>
         )}
       </div>
 
-      <div className="border-t border-border/60 p-4">
-        <div className="max-w-3xl mx-auto relative">
-          {showEmoji && (
-            <div className="absolute bottom-14 left-0 glass rounded-2xl p-2 grid grid-cols-6 gap-1 z-10">
-              {EMOJIS.map((e) => (
-                <button key={e} className="text-xl hover:bg-accent rounded-lg p-1" onClick={() => { setInput((p) => p + e); setShowEmoji(false); }}>{e}</button>
-              ))}
-            </div>
-          )}
-          <div className="glass rounded-2xl flex items-center gap-1 p-1.5">
-            <button onClick={() => setShowEmoji((s) => !s)} className="p-2 rounded-lg hover:bg-accent text-muted-foreground" aria-label="Emoji">
-              <Smile className="h-4 w-4" />
-            </button>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); send(); } }}
-              placeholder="Message…"
-              className="flex-1 bg-transparent px-2 py-2 text-sm outline-none"
-              autoFocus
-            />
-            <button onClick={send} disabled={!input.trim()}
-              className="h-9 w-9 rounded-xl bg-primary text-primary-foreground grid place-items-center hover:opacity-90 transition disabled:opacity-40 shadow-[var(--shadow-glow)]"
-              aria-label="Send">
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <ChatComposer userId={user.id} placeholder="Message…" onSend={send} />
     </div>
   );
 }
