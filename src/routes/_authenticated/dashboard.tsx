@@ -111,7 +111,7 @@ function Dashboard() {
               { label: "AI chats", value: stats?.threads ?? 0, icon: Bot },
               { label: "Notes", value: stats?.notes ?? 0, icon: FolderOpen },
               { label: "Friends", value: stats?.friends ?? 0, icon: Users },
-              { label: "Groups", value: stats?.groups ?? 0, icon: MessageCircle },
+              { label: "Liked songs", value: stats?.likes ?? 0, icon: Heart },
             ].map((s) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 className="glass rounded-2xl p-5 hover:shadow-[var(--shadow-glow)] transition">
