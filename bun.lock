@@ -42,6 +42,7 @@
         "@tanstack/react-start": "^1.168.26",
         "@tanstack/router-plugin": "^1.168.18",
         "ai": "5.0.210",
+        "chess.js": "^1.4.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -717,6 +718,8 @@
     "character-entities-legacy": ["character-entities-legacy@3.0.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/character-entities-legacy/-/character-entities-legacy-3.0.0.tgz", {}, "sha512-RpPp0asT/6ufRm//AJVwpViZbGM/MkjQFxJccQRHmISF/22NBtsHqAWmL+/pmkPWoIUJdWyeVleTl1wydHATVQ=="],
 
     "character-reference-invalid": ["character-reference-invalid@2.0.1", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/character-reference-invalid/-/character-reference-invalid-2.0.1.tgz", {}, "sha512-iBZ4F4wRbyORVsu0jPV7gXkOsGYjGHPmAyv+HiHG8gi5PtC9KI2j1+v8/tlibRvjoWX027ypmG/n0HtO5t7unw=="],
+
+    "chess.js": ["chess.js@1.4.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/chess.js/-/chess.js-1.4.0.tgz", {}, "sha512-BBJgrrtKQOzFLonR0l+k64A98NLemPwNsCskwb+29bRwobUa4iTm51E1kwGPbWXAcfdDa18nad6vpPPKPWarqw=="],
 
     "chokidar": ["chokidar@5.0.0", "", { "dependencies": { "readdirp": "^5.0.0" } }, "sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw=="],
 
