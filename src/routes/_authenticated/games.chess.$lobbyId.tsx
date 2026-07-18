@@ -557,11 +557,11 @@ function MoveHistory({ history }: { history: Array<{ san: string; color: "w" | "
       ) : (
         <div className="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-1 text-sm font-mono">
           {pairs.map((p) => (
-            <>
-              <div key={`n-${p.n}`} className="text-muted-foreground">{p.n}.</div>
-              <div key={`w-${p.n}`}>{p.w ?? ""}</div>
-              <div key={`b-${p.n}`}>{p.b ?? ""}</div>
-            </>
+            <div key={p.n} className="contents">
+              <div className="text-muted-foreground">{p.n}.</div>
+              <div>{p.w ?? ""}</div>
+              <div>{p.b ?? ""}</div>
+            </div>
           ))}
         </div>
       )}
