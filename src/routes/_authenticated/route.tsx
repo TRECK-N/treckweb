@@ -33,6 +33,7 @@ const NAV = [
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/music", label: "Music", icon: Music },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
+  { to: "/games", label: "Games", icon: Gamepad2 },
   { to: "/membership", label: "Membership", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
