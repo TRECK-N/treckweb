@@ -30,6 +30,8 @@ import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
+import { Route as AuthenticatedGamesChessIndexRouteImport } from './routes/_authenticated/games.chess.index'
+import { Route as AuthenticatedGamesChessLobbyIdRouteImport } from './routes/_authenticated/games.chess.$lobbyId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -138,6 +140,18 @@ const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
   path: '/ai/$threadId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGamesChessIndexRoute =
+  AuthenticatedGamesChessIndexRouteImport.update({
+    id: '/games/chess/',
+    path: '/games/chess/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGamesChessLobbyIdRoute =
+  AuthenticatedGamesChessLobbyIdRouteImport.update({
+    id: '/games/chess/$lobbyId',
+    path: '/games/chess/$lobbyId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +174,8 @@ export interface FileRoutesByFullPath {
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/games/': typeof AuthenticatedGamesIndexRoute
   '/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/games/chess/': typeof AuthenticatedGamesChessIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -181,6 +197,8 @@ export interface FileRoutesByTo {
   '/ai': typeof AuthenticatedAiIndexRoute
   '/games': typeof AuthenticatedGamesIndexRoute
   '/messages': typeof AuthenticatedMessagesIndexRoute
+  '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/games/chess': typeof AuthenticatedGamesChessIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,6 +223,8 @@ export interface FileRoutesById {
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/_authenticated/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/_authenticated/games/chess/': typeof AuthenticatedGamesChessIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -229,6 +249,8 @@ export interface FileRouteTypes {
     | '/ai/'
     | '/games/'
     | '/messages/'
+    | '/games/chess/$lobbyId'
+    | '/games/chess/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -250,6 +272,8 @@ export interface FileRouteTypes {
     | '/ai'
     | '/games'
     | '/messages'
+    | '/games/chess/$lobbyId'
+    | '/games/chess'
   id:
     | '__root__'
     | '/'
@@ -273,6 +297,8 @@ export interface FileRouteTypes {
     | '/_authenticated/ai/'
     | '/_authenticated/games/'
     | '/_authenticated/messages/'
+    | '/_authenticated/games/chess/$lobbyId'
+    | '/_authenticated/games/chess/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -432,6 +458,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/games/chess/': {
+      id: '/_authenticated/games/chess/'
+      path: '/games/chess'
+      fullPath: '/games/chess/'
+      preLoaderRoute: typeof AuthenticatedGamesChessIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games/chess/$lobbyId': {
+      id: '/_authenticated/games/chess/$lobbyId'
+      path: '/games/chess/$lobbyId'
+      fullPath: '/games/chess/$lobbyId'
+      preLoaderRoute: typeof AuthenticatedGamesChessLobbyIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -465,6 +505,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
+  AuthenticatedGamesChessLobbyIdRoute: typeof AuthenticatedGamesChessLobbyIdRoute
+  AuthenticatedGamesChessIndexRoute: typeof AuthenticatedGamesChessIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -482,6 +524,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
+  AuthenticatedGamesChessLobbyIdRoute: AuthenticatedGamesChessLobbyIdRoute,
+  AuthenticatedGamesChessIndexRoute: AuthenticatedGamesChessIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

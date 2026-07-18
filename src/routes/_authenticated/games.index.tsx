@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Gamepad2, ExternalLink, Play, Crown, Brain } from "lucide-react";
-import { toast } from "sonner";
+import { Gamepad2, Play, Crown, Brain } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/games/")({
   component: GamesPage,
@@ -13,9 +12,7 @@ type Game = {
   description: string;
   gradient: string;
   icon: typeof Gamepad2;
-  action:
-    | { kind: "external"; url: string }
-    | { kind: "internal"; to: "/games/snake" | "/games/memory" };
+  to: "/games/snake" | "/games/memory" | "/games/chess";
   badge?: string;
 };
 
@@ -23,10 +20,10 @@ const GAMES: Game[] = [
   {
     id: "chessfriends",
     title: "ChessFriends",
-    description: "A modern online chess experience. Play friends and rivals in a beautifully polished board.",
+    description: "A premium multiplayer chess platform — create lobbies, invite friends, play live.",
     gradient: "from-amber-500 via-orange-500 to-rose-500",
     icon: Crown,
-    action: { kind: "external", url: "https://www.chess.com/play/online" },
+    to: "/games/chess",
     badge: "Featured",
   },
   {
@@ -35,7 +32,7 @@ const GAMES: Game[] = [
     description: "The timeless arcade classic — smoother, faster and prettier. Chase your high score.",
     gradient: "from-emerald-500 via-teal-500 to-cyan-500",
     icon: Gamepad2,
-    action: { kind: "internal", to: "/games/snake" },
+    to: "/games/snake",
   },
   {
     id: "memory",
@@ -43,16 +40,11 @@ const GAMES: Game[] = [
     description: "Match every pair before the timer runs out. Three difficulties, one shiny best score.",
     gradient: "from-fuchsia-500 via-purple-500 to-primary",
     icon: Brain,
-    action: { kind: "internal", to: "/games/memory" },
+    to: "/games/memory",
   },
 ];
 
 function GamesPage() {
-  const launchExternal = (url: string) => {
-    const w = window.open(url, "_blank", "noopener,noreferrer");
-    if (!w) toast.error("Your browser blocked the new tab. Please allow pop-ups.");
-  };
-
   return (
     <div className="relative min-h-full">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -97,22 +89,12 @@ function GamesPage() {
               <div className="p-5">
                 <div className="font-semibold text-lg">{g.title}</div>
                 <p className="mt-1 text-sm text-muted-foreground min-h-[40px]">{g.description}</p>
-                {g.action.kind === "external" ? (
-                  <button
-                    onClick={() => launchExternal((g.action as { kind: "external"; url: string }).url)}
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-glow px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 transition"
-                  >
-                    <Play className="h-4 w-4" /> Play
-                    <ExternalLink className="h-3.5 w-3.5 opacity-80" />
-                  </button>
-                ) : (
-                  <Link
-                    to={g.action.to}
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-glow px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 transition"
-                  >
-                    <Play className="h-4 w-4" /> Play
-                  </Link>
-                )}
+                <Link
+                  to={g.to}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-glow px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 transition"
+                >
+                  <Play className="h-4 w-4" /> Play
+                </Link>
               </div>
             </motion.div>
           ))}

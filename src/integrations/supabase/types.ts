@@ -100,6 +100,177 @@ export type Database = {
         }
         Relationships: []
       }
+      chess_games: {
+        Row: {
+          black_id: string | null
+          created_at: string
+          draw_offered_by: string | null
+          fen: string
+          id: string
+          lobby_id: string
+          pgn: string
+          result: string | null
+          status: string
+          turn: string
+          updated_at: string
+          white_id: string | null
+        }
+        Insert: {
+          black_id?: string | null
+          created_at?: string
+          draw_offered_by?: string | null
+          fen?: string
+          id?: string
+          lobby_id: string
+          pgn?: string
+          result?: string | null
+          status?: string
+          turn?: string
+          updated_at?: string
+          white_id?: string | null
+        }
+        Update: {
+          black_id?: string | null
+          created_at?: string
+          draw_offered_by?: string | null
+          fen?: string
+          id?: string
+          lobby_id?: string
+          pgn?: string
+          result?: string | null
+          status?: string
+          turn?: string
+          updated_at?: string
+          white_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chess_games_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "chess_lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chess_lobbies: {
+        Row: {
+          chat_enabled: boolean
+          code: string | null
+          created_at: string
+          host_id: string
+          id: string
+          is_public: boolean
+          max_players: number
+          name: string
+          settings: Json
+          spectators_allowed: boolean
+          status: string
+          time_control_seconds: number | null
+          updated_at: string
+        }
+        Insert: {
+          chat_enabled?: boolean
+          code?: string | null
+          created_at?: string
+          host_id: string
+          id?: string
+          is_public?: boolean
+          max_players?: number
+          name: string
+          settings?: Json
+          spectators_allowed?: boolean
+          status?: string
+          time_control_seconds?: number | null
+          updated_at?: string
+        }
+        Update: {
+          chat_enabled?: boolean
+          code?: string | null
+          created_at?: string
+          host_id?: string
+          id?: string
+          is_public?: boolean
+          max_players?: number
+          name?: string
+          settings?: Json
+          spectators_allowed?: boolean
+          status?: string
+          time_control_seconds?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chess_lobby_chat: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          lobby_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          lobby_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          lobby_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chess_lobby_chat_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "chess_lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chess_lobby_members: {
+        Row: {
+          id: string
+          is_ready: boolean
+          joined_at: string
+          lobby_id: string
+          role: string
+          team: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_ready?: boolean
+          joined_at?: string
+          lobby_id: string
+          role?: string
+          team?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_ready?: boolean
+          joined_at?: string
+          lobby_id?: string
+          role?: string
+          team?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chess_lobby_members_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "chess_lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       direct_messages: {
         Row: {
           attachments: Json
