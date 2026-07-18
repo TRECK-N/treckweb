@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Gamepad2, ExternalLink, Play, Crown, Brain } from "lucide-react";
-import { toast } from "sonner";
+import { Gamepad2, Play, Crown, Brain } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/games/")({
   component: GamesPage,
