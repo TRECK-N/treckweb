@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Bot, MessageCircle, FolderOpen, Settings, LogOut, Menu, Sun, Moon, Crown,
-  UserPlus, Music, Search,
+  UserPlus, Music, Search, Gamepad2,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
