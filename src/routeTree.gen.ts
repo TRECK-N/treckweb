@@ -27,6 +27,7 @@ import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
+import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -120,6 +121,11 @@ const AuthenticatedMessagesUserIdRoute =
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
+const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
+  id: '/games/snake',
+  path: '/games/snake',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
   id: '/ai/$threadId',
   path: '/ai/$threadId',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/games/snake': typeof AuthenticatedGamesSnakeRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/games/': typeof AuthenticatedGamesIndexRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/games/snake': typeof AuthenticatedGamesSnakeRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/games': typeof AuthenticatedGamesIndexRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/ai/$threadId'
+    | '/games/snake'
     | '/messages/$userId'
     | '/ai/'
     | '/games/'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/api/chat'
     | '/ai/$threadId'
+    | '/games/snake'
     | '/messages/$userId'
     | '/ai'
     | '/games'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/_authenticated/workspace'
     | '/api/chat'
     | '/_authenticated/ai/$threadId'
+    | '/_authenticated/games/snake'
     | '/_authenticated/messages/$userId'
     | '/_authenticated/ai/'
     | '/_authenticated/games/'
@@ -386,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
+    '/_authenticated/games/snake': {
+      id: '/_authenticated/games/snake'
+      path: '/games/snake'
+      fullPath: '/games/snake'
+      preLoaderRoute: typeof AuthenticatedGamesSnakeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ai/$threadId': {
       id: '/_authenticated/ai/$threadId'
       path: '/ai/$threadId'
@@ -422,6 +441,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
   AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
+  AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
 }
@@ -437,6 +457,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
   AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
+  AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
 }
