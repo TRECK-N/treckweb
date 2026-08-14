@@ -397,6 +397,7 @@ function Workspace() {
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   );
