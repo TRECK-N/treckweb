@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Crown, Check, Loader2, Sparkles, Music, Bot, Image as ImageIcon, Paperclip } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Crown, Check, Lock, Music, Bot, Image as ImageIcon, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 
@@ -33,10 +32,8 @@ function priceFor(months: number) {
 
 function Membership() {
   const { user } = Route.useRouteContext();
-  const qc = useQueryClient();
-  const { data: sub, refetch } = useSubscription(user.id);
+  const { data: sub } = useSubscription(user.id);
   const [months, setMonths] = useState(1);
-  const [processing, setProcessing] = useState<"pro" | "music" | null>(null);
 
   const { data: history = [] } = useQuery({
     queryKey: ["purchases", user.id],
@@ -48,51 +45,11 @@ function Membership() {
     },
   });
 
-  const buyPro = async () => {
-    setProcessing("pro");
-    await new Promise((r) => setTimeout(r, 900));
-    const now = new Date();
-    const start = sub?.isPro && sub.expiresAt ? sub.expiresAt : now;
-    const expires = new Date(start);
-    expires.setMonth(expires.getMonth() + months);
-    const amount = priceFor(months);
-
-    const { error: pErr } = await supabase.from("profiles")
-      .update({ subscription_tier: "pro", pro_expires_at: expires.toISOString() })
-      .eq("id", user.id);
-    if (pErr) { toast.error(pErr.message); setProcessing(null); return; }
-
-    await supabase.from("purchases").insert({
-      user_id: user.id, product_kind: "pro", months, amount, expires_at: expires.toISOString(),
-    });
-    toast.success(`TRECK PRO active until ${expires.toLocaleDateString()}`);
-    await refetch();
-    qc.invalidateQueries({ queryKey: ["purchases", user.id] });
-    qc.invalidateQueries({ queryKey: ["subscription", user.id] });
-    setProcessing(null);
-  };
-
-  const buyMusic = async () => {
-    setProcessing("music");
-    await new Promise((r) => setTimeout(r, 900));
-    const { error } = await supabase.from("profiles")
-      .update({ music_pack_unlocked: true }).eq("id", user.id);
-    if (error) { toast.error(error.message); setProcessing(null); return; }
-    await supabase.from("purchases").insert({
-      user_id: user.id, product_kind: "music_pack", amount: 5,
-    });
-    toast.success("Music Pack unlocked forever 🎵");
-    await refetch();
-    qc.invalidateQueries({ queryKey: ["purchases", user.id] });
-    qc.invalidateQueries({ queryKey: ["subscription", user.id] });
-    setProcessing(null);
-  };
-
   return (
     <div className="p-6 lg:p-10 max-w-5xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Membership</h1>
-        <p className="text-sm text-muted-foreground">Manage your TRECK PRO subscription and unlocks.</p>
+        <p className="text-sm text-muted-foreground">Manage your WebuWeb PRO plan and unlocks.</p>
       </div>
 
       {/* Current plan */}
@@ -106,7 +63,7 @@ function Membership() {
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Current plan</div>
             <div className="mt-1 flex items-center gap-2">
               <h2 className="text-2xl font-bold">
-                {sub?.isPro ? "TRECK PRO" : "Standard"}
+                {sub?.isPro ? "WebuWeb PRO" : "Standard"}
               </h2>
               {sub?.isPro && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-primary text-white text-xs px-2 py-0.5 font-bold uppercase">
@@ -140,8 +97,8 @@ function Membership() {
             <Crown className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold">{sub?.isPro ? "Extend TRECK PRO" : "Get TRECK PRO"}</h2>
-            <p className="text-sm text-muted-foreground">Fake checkout — instant activation.</p>
+            <h2 className="text-xl font-bold">{sub?.isPro ? "Extend WebuWeb PRO" : "Get WebuWeb PRO"}</h2>
+            <p className="text-sm text-muted-foreground">Checkout is being upgraded — purchases open soon.</p>
           </div>
         </div>
 
@@ -177,14 +134,18 @@ function Membership() {
           ))}
         </ul>
 
-        <button
-          onClick={buyPro}
-          disabled={processing !== null}
-          className="mt-6 w-full sm:w-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-primary px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-glow)] hover:opacity-95 disabled:opacity-50"
-        >
-          {processing === "pro" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {sub?.isPro ? `Extend ${months}mo for $${priceFor(months)}` : `Activate PRO for $${priceFor(months)}`}
-        </button>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            disabled
+            aria-disabled="true"
+            className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-muted px-6 py-3 text-sm font-semibold text-muted-foreground"
+          >
+            <Lock className="h-4 w-4" /> Purchases temporarily unavailable
+          </button>
+          <span className="text-xs text-muted-foreground">
+            Secure payments are being set up. PRO will be purchasable here soon.
+          </span>
+        </div>
       </div>
 
       {/* Music Pack */}
@@ -208,16 +169,18 @@ function Membership() {
           <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Unlocks the full Music section</li>
           <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Every current & future song included</li>
           <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Permanent access — never expires</li>
-          <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Works alongside TRECK PRO</li>
+          <li className="flex items-center gap-2"><Check className="h-4 w-4 text-success" /> Works alongside WebuWeb PRO</li>
         </ul>
-        <button
-          onClick={buyMusic}
-          disabled={processing !== null || !!sub?.musicPackUnlocked}
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-[var(--shadow-glow)] hover:opacity-95 disabled:opacity-50"
-        >
-          {processing === "music" ? <Loader2 className="h-4 w-4 animate-spin" /> : sub?.musicPackUnlocked ? <Check className="h-4 w-4" /> : <Music className="h-4 w-4" />}
-          {sub?.musicPackUnlocked ? "Already unlocked" : "Unlock Music Pack — $5"}
-        </button>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            disabled
+            aria-disabled="true"
+            className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-muted px-5 py-2.5 text-sm font-semibold text-muted-foreground"
+          >
+            <Lock className="h-4 w-4" /> Temporarily unavailable
+          </button>
+          <span className="text-xs text-muted-foreground">The Music Pack returns once payments go live.</span>
+        </div>
       </div>
 
       {/* History */}
@@ -231,7 +194,7 @@ function Membership() {
               <div key={h.id} className="flex items-center justify-between py-3">
                 <div>
                   <div className="font-medium text-sm">
-                    {h.product_kind === "pro" ? `TRECK PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Music Pack"}
+                    {h.product_kind === "pro" ? `WebuWeb PRO — ${h.months} month${(h.months ?? 0) > 1 ? "s" : ""}` : "Music Pack"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(h.created_at).toLocaleString()}
