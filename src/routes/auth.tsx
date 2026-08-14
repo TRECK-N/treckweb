@@ -1,13 +1,23 @@
-import { createFileRoute, useNavigate, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import auroraBg from "@/assets/aurora-bg.jpg";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { setSessionPersistence } from "@/lib/session-persistence";
+import logoAsset from "@/assets/treckweb-logo.png.asset.json";
+import { ArrowRight, Loader2, Check } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Sign in — WebuWeb" },
+      { name: "description", content: "Sign in or create your WebuWeb account to open your workspace, chat, study tools and games." },
+      { property: "og:title", content: "Sign in — WebuWeb" },
+      { property: "og:description", content: "Sign in or create your WebuWeb account to open your workspace, chat, study tools and games." },
+    ],
+  }),
   beforeLoad: async () => {
     if (typeof window !== "undefined") {
       const { data } = await supabase.auth.getSession();
@@ -19,17 +29,24 @@ export const Route = createFileRoute("/auth")({
 
 type Mode = "signin" | "signup" | "forgot";
 
+const HIGHLIGHTS = [
+  "AI assistant with saved conversations",
+  "Private chat, friends and groups",
+  "Workspace, study sets and games",
+];
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [stay, setStay] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) navigate({ to: "/dashboard" });
+      if (event === "SIGNED_IN" && session) navigate({ to: "/dashboard", replace: true });
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
@@ -39,21 +56,20 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signin") {
+        setSessionPersistence(stay);
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welcome back!");
-        navigate({ to: "/dashboard" });
+        toast.success("Welcome back");
+        navigate({ to: "/dashboard", replace: true });
       } else if (mode === "signup") {
+        setSessionPersistence(stay);
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { full_name: name },
-          },
+          options: { emailRedirectTo: window.location.origin, data: { full_name: name } },
         });
         if (error) throw error;
-        toast.success("Account created. Welcome to TreckWeb!");
+        toast.success("Account created. Welcome to WebuWeb.");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -71,114 +87,159 @@ function AuthPage() {
 
   const google = async () => {
     setLoading(true);
-    const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
+    setSessionPersistence(stay);
+    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (res.error) {
       toast.error(res.error.message);
       setLoading(false);
       return;
     }
     if (res.redirected) return;
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/dashboard", replace: true });
   };
 
+  const field =
+    "w-full rounded-xl border border-border/70 bg-background/50 px-3.5 py-3 text-sm outline-none transition focus:border-primary/70 focus:bg-background/80";
+
   return (
-    <div className="relative min-h-screen grid place-items-center px-4 py-10 overflow-hidden bg-background">
-      <img src={auroraBg} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-30 pointer-events-none" />
-      <div className="absolute inset-0 mesh-bg opacity-60" />
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 left-1/3 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
+        <div className="absolute -bottom-48 right-0 h-[28rem] w-[28rem] rounded-full bg-primary-glow/10 blur-[120px]" />
+        <div className="absolute inset-0 mesh-bg opacity-40" />
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative z-10 glass rounded-3xl w-full max-w-md p-8 shadow-[var(--shadow-elevated)]"
-      >
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl mb-6">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary-glow shadow-[var(--shadow-glow)]" />
-          TreckWeb
-        </Link>
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-6 py-12 lg:grid-cols-[1.05fr_1fr]">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="hidden lg:block"
+        >
+          <div className="flex items-center gap-3">
+            <img src={logoAsset.url} alt="WebuWeb" className="h-11 w-11 rounded-2xl object-cover ring-1 ring-border/60" />
+            <span className="text-xl font-semibold tracking-tight">WebuWeb</span>
+          </div>
+          <h1 className="mt-10 text-5xl font-semibold leading-[1.05] tracking-tight">
+            Your workspace,
+            <br />
+            <span className="text-muted-foreground">quietly powerful.</span>
+          </h1>
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+            One calm, private place to think, talk, study and play. Sign in to continue where you left off.
+          </p>
+          <ul className="mt-8 space-y-3">
+            {HIGHLIGHTS.map((h) => (
+              <li key={h} className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="grid h-5 w-5 place-items-center rounded-full border border-border/70 bg-background/60">
+                  <Check className="h-3 w-3 text-primary" />
+                </span>
+                {h}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
 
-        <h1 className="text-2xl font-bold tracking-tight">
-          {mode === "signin" && "Welcome back"}
-          {mode === "signup" && "Create your account"}
-          {mode === "forgot" && "Reset your password"}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {mode === "signin" && "Sign in to your TreckWeb workspace."}
-          {mode === "signup" && "Start studying, chatting and building."}
-          {mode === "forgot" && "We'll email you a reset link."}
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="glass mx-auto w-full max-w-md rounded-3xl p-8 shadow-[var(--shadow-elevated)]"
+        >
+          <div className="flex items-center gap-2.5 lg:hidden">
+            <img src={logoAsset.url} alt="WebuWeb" className="h-9 w-9 rounded-xl object-cover ring-1 ring-border/60" />
+            <span className="text-lg font-semibold tracking-tight">WebuWeb</span>
+          </div>
 
-        {mode !== "forgot" && (
-          <>
-            <button
-              onClick={google}
-              disabled={loading}
-              className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-background/40 py-2.5 text-sm font-medium hover:bg-accent transition disabled:opacity-50"
-            >
-              <GoogleIcon /> Continue with Google
-            </button>
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-border" /> or <div className="h-px flex-1 bg-border" />
-            </div>
-          </>
-        )}
+          <h2 className="mt-6 text-2xl font-semibold tracking-tight lg:mt-0">
+            {mode === "signin" && "Sign in"}
+            {mode === "signup" && "Create your account"}
+            {mode === "forgot" && "Reset your password"}
+          </h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {mode === "signin" && "Welcome back to WebuWeb."}
+            {mode === "signup" && "It takes less than a minute."}
+            {mode === "forgot" && "We'll email you a secure reset link."}
+          </p>
 
-        <form onSubmit={onSubmit} className="space-y-3">
-          {mode === "signup" && (
-            <Field label="Full name">
-              <input
-                required value={name} onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background/40 px-3 py-2.5 text-sm outline-none focus:border-primary transition"
-                placeholder="Ada Lovelace"
-              />
-            </Field>
-          )}
-          <Field label="Email">
-            <input
-              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background/40 px-3 py-2.5 text-sm outline-none focus:border-primary transition"
-              placeholder="you@school.edu" autoComplete="email"
-            />
-          </Field>
           {mode !== "forgot" && (
-            <Field label="Password">
+            <>
+              <button
+                onClick={google}
+                disabled={loading}
+                className="mt-6 inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-border/70 bg-background/50 py-3 text-sm font-medium transition hover:bg-accent/60 disabled:opacity-50"
+              >
+                <GoogleIcon /> Continue with Google
+              </button>
+              <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <div className="h-px flex-1 bg-border/70" /> or <div className="h-px flex-1 bg-border/70" />
+              </div>
+            </>
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-3.5">
+            {mode === "signup" && (
+              <Field label="Full name">
+                <input required value={name} onChange={(e) => setName(e.target.value)} className={field} placeholder="Ada Lovelace" />
+              </Field>
+            )}
+            <Field label="Email">
               <input
-                type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
-                className="w-full rounded-xl border border-border bg-background/40 px-3 py-2.5 text-sm outline-none focus:border-primary transition"
-                placeholder="••••••••" autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                className={field} placeholder="you@school.edu" autoComplete="email"
               />
             </Field>
-          )}
+            {mode !== "forgot" && (
+              <Field label="Password">
+                <input
+                  type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                  minLength={6} className={field} placeholder="••••••••"
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                />
+              </Field>
+            )}
 
-          <button
-            type="submit" disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:opacity-90 transition disabled:opacity-50 shadow-[var(--shadow-glow)]"
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
-              {mode === "signin" && "Sign in"}
-              {mode === "signup" && "Create account"}
-              {mode === "forgot" && "Send reset link"}
-              <ArrowRight className="h-4 w-4" />
-            </>}
-          </button>
-        </form>
+            {mode !== "forgot" && (
+              <label className="flex cursor-pointer select-none items-center gap-2.5 pt-1 text-sm text-muted-foreground">
+                <input
+                  type="checkbox" checked={stay} onChange={(e) => setStay(e.target.checked)}
+                  className="h-4 w-4 rounded border-border accent-[hsl(var(--primary))]"
+                />
+                Stay signed in
+              </label>
+            )}
 
-        <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground justify-center">
-          {mode === "signin" && (<>
-            <button onClick={() => setMode("signup")} className="hover:text-foreground transition">Create account</button>
-            <button onClick={() => setMode("forgot")} className="hover:text-foreground transition">Forgot password?</button>
-          </>)}
-          {mode === "signup" && (
-            <button onClick={() => setMode("signin")} className="hover:text-foreground transition">Already have an account? Sign in</button>
-          )}
-          {mode === "forgot" && (
-            <button onClick={() => setMode("signin")} className="hover:text-foreground transition">Back to sign in</button>
-          )}
-        </div>
-      </motion.div>
+            <button
+              type="submit" disabled={loading}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition hover:opacity-90 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                <>
+                  {mode === "signin" && "Sign in"}
+                  {mode === "signup" && "Create account"}
+                  {mode === "forgot" && "Send reset link"}
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            {mode === "signin" && (
+              <>
+                <button onClick={() => setMode("signup")} className="transition hover:text-foreground">Create account</button>
+                <button onClick={() => setMode("forgot")} className="transition hover:text-foreground">Forgot password?</button>
+              </>
+            )}
+            {mode === "signup" && (
+              <button onClick={() => setMode("signin")} className="transition hover:text-foreground">Already have an account? Sign in</button>
+            )}
+            {mode === "forgot" && (
+              <button onClick={() => setMode("signin")} className="transition hover:text-foreground">Back to sign in</button>
+            )}
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
@@ -187,7 +248,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <label className="block">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <div className="mt-1">{children}</div>
+      <div className="mt-1.5">{children}</div>
     </label>
   );
 }
