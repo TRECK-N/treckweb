@@ -22,6 +22,7 @@ import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMembershipRouteImport } from './routes/_authenticated/membership'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedStudyIndexRouteImport } from './routes/_authenticated/study.index'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
@@ -95,6 +96,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStudyIndexRoute = AuthenticatedStudyIndexRouteImport.update({
+  id: '/study/',
+  path: '/study/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMessagesIndexRoute =
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/games/': typeof AuthenticatedGamesIndexRoute
   '/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/study/': typeof AuthenticatedStudyIndexRoute
   '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
   '/games/chess/': typeof AuthenticatedGamesChessIndexRoute
 }
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/ai': typeof AuthenticatedAiIndexRoute
   '/games': typeof AuthenticatedGamesIndexRoute
   '/messages': typeof AuthenticatedMessagesIndexRoute
+  '/study': typeof AuthenticatedStudyIndexRoute
   '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
   '/games/chess': typeof AuthenticatedGamesChessIndexRoute
 }
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/_authenticated/study/': typeof AuthenticatedStudyIndexRoute
   '/_authenticated/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
   '/_authenticated/games/chess/': typeof AuthenticatedGamesChessIndexRoute
 }
@@ -250,6 +259,7 @@ export interface FileRouteTypes {
     | '/ai/'
     | '/games/'
     | '/messages/'
+    | '/study/'
     | '/games/chess/$lobbyId'
     | '/games/chess/'
   fileRoutesByTo: FileRoutesByTo
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/games'
     | '/messages'
+    | '/study'
     | '/games/chess/$lobbyId'
     | '/games/chess'
   id:
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ai/'
     | '/_authenticated/games/'
     | '/_authenticated/messages/'
+    | '/_authenticated/study/'
     | '/_authenticated/games/chess/$lobbyId'
     | '/_authenticated/games/chess/'
   fileRoutesById: FileRoutesById
@@ -404,6 +416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/study/': {
+      id: '/_authenticated/study/'
+      path: '/study'
+      fullPath: '/study/'
+      preLoaderRoute: typeof AuthenticatedStudyIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/messages/': {
       id: '/_authenticated/messages/'
       path: '/'
@@ -506,6 +525,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
+  AuthenticatedStudyIndexRoute: typeof AuthenticatedStudyIndexRoute
   AuthenticatedGamesChessLobbyIdRoute: typeof AuthenticatedGamesChessLobbyIdRoute
   AuthenticatedGamesChessIndexRoute: typeof AuthenticatedGamesChessIndexRoute
 }
@@ -524,6 +544,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
+  AuthenticatedStudyIndexRoute: AuthenticatedStudyIndexRoute,
   AuthenticatedGamesChessLobbyIdRoute: AuthenticatedGamesChessLobbyIdRoute,
   AuthenticatedGamesChessIndexRoute: AuthenticatedGamesChessIndexRoute,
 }
