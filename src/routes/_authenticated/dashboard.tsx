@@ -180,8 +180,8 @@ function Dashboard() {
             <p className="mt-2 text-sm text-muted-foreground">
               Build flashcards, notes and quizzes for every subject, and keep them next to your workspace files.
             </p>
-            <Link to="/study" className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-4 py-2 text-sm font-medium transition hover:bg-accent/60">
-              <GraduationCap className="h-4 w-4" /> Open Study
+            <Link to="/workspace" className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-4 py-2 text-sm font-medium transition hover:bg-accent/60">
+              <GraduationCap className="h-4 w-4" /> Open Workspace
             </Link>
           </div>
         </div>
