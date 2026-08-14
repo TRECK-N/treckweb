@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Bot, MessageCircle, FolderOpen, Settings, LogOut, Menu, Sun, Moon, Crown,
-  UserPlus, Music, Search, Gamepad2,
+  Music, Gamepad2, Lock,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +12,18 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { ProBadge } from "@/components/pro-badge";
 import { MusicPlayerProvider } from "@/components/music-player-provider";
 import { MiniPlayer } from "@/components/mini-player";
+import { shouldDropSession, clearSessionPersistence } from "@/lib/session-persistence";
 import logoAsset from "@/assets/treckweb-logo.png.asset.json";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
+    if (shouldDropSession()) {
+      clearSessionPersistence();
+      await supabase.auth.signOut();
+      throw redirect({ to: "/auth" });
+    }
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/auth" });
     return { user: data.user };
@@ -26,17 +32,16 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: Home },
-  { to: "/search", label: "Search", icon: Search },
+  { to: "/dashboard", label: "Home", icon: Home },
   { to: "/ai", label: "AI Assistant", icon: Bot },
-  { to: "/friends", label: "Friends", icon: UserPlus },
   { to: "/chat", label: "Chat", icon: MessageCircle },
-  { to: "/music", label: "Music", icon: Music },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
   { to: "/games", label: "Games", icon: Gamepad2 },
+  { to: "/music", label: "Music", icon: Music, locked: true },
   { to: "/membership", label: "Membership", icon: Crown },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
+
 
 function AuthLayout() {
   const { user } = Route.useRouteContext();
