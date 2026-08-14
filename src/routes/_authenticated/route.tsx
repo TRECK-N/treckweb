@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Bot, MessageCircle, FolderOpen, Settings, LogOut, Menu, Sun, Moon, Crown,
-  Music, Gamepad2, Lock,
+  Music, Gamepad2, Lock, GraduationCap,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,7 @@ const NAV = [
   { to: "/ai", label: "AI Assistant", icon: Bot },
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/workspace", label: "Workspace", icon: FolderOpen },
+  { to: "/study", label: "Study", icon: GraduationCap },
   { to: "/games", label: "Games", icon: Gamepad2 },
   { to: "/music", label: "Music", icon: Music, locked: true },
   { to: "/membership", label: "Membership", icon: Crown },
