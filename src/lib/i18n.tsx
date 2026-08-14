@@ -91,7 +91,7 @@ const it: Dict = {
   "study.flashcards": "Flashcard", "study.quizzes": "Quiz", "study.notes": "Note",
   "games.title": "Giochi", "games.subtitle": "Fai una pausa — da solo o con gli amici.",
   "games.play": "Gioca", "games.score": "Punteggio", "games.best": "Record", "games.newGame": "Nuova partita",
-  "games.playAgain": "Jouer ancora", "games.gameOver": "Partita finita", "games.paused": "In pausa",
+  "games.playAgain": "Gioca ancora", "games.gameOver": "Partita finita", "games.paused": "In pausa",
   "settings.title": "Impostazioni", "settings.profile": "Profilo", "settings.appearance": "Aspetto",
   "settings.languageHint": "Scegli la lingua di WebuWeb.",
 };
@@ -138,7 +138,7 @@ const ro: Dict = {
   "common.create": "Creează", "common.loading": "Se încarcă…", "common.back": "Înapoi", "common.language": "Limbă", "common.theme": "Temă",
   "dashboard.greeting": "Bine ai revenit", "dashboard.subtitle": "Tot ce ai nevoie, într-un singur loc.",
   "dashboard.searchPlaceholder": "Caută persoane, grupuri, notițe și fișiere…",
-  "study.title": "Învățare", "study.subtitle": "Carduri, teste și notițe —创 creează-le tu sau lasă AI-ul.",
+  "study.title": "Învățare", "study.subtitle": "Carduri, teste și notițe —creează-le tu sau lasă AI-ul.",
   "study.flashcards": "Carduri", "study.quizzes": "Teste", "study.notes": "Notițe",
   "games.title": "Jocuri", "games.subtitle": "Ia o pauză — singur sau cu prietenii.",
   "games.play": "Joacă", "games.score": "Scor", "games.best": "Record", "games.newGame": "Joc nou",
