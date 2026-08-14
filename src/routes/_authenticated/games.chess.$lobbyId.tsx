@@ -332,22 +332,29 @@ function ChessLobbyPage() {
 
 function WaitingRoom({
   players, spectators, profileById, lobby, isHost, me,
-  onKick, onTransferHost, onToggleReady, onStart, onSwapColors, allReady, myMember,
+  onKick, onTransferHost, onToggleReady, onStart, onSwapColors, allReady, mode, caps, onSetTeam,
 }: {
   members: Member[]; players: Member[]; spectators: Member[];
   profileById: Map<string, Profile>; lobby: Lobby; isHost: boolean; me: string;
   onKick: (id: string) => void; onTransferHost: (uid: string) => void; onToggleReady: () => void;
   onStart: () => void; onSwapColors: () => void; allReady: boolean; myMember?: Member;
+  mode: ChessMode; caps: { white: number; black: number };
+  onSetTeam: (memberId: string, team: "white" | "black") => void;
 }) {
+  const whiteTeam = players.filter((p) => p.team === "white");
+  const blackTeam = players.filter((p) => p.team === "black");
   return (
     <div className="glass rounded-3xl border border-border/60 p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-1">
         <div className="font-semibold">Waiting room</div>
         {isHost && (
           <button onClick={onSwapColors} className="inline-flex items-center gap-1.5 text-xs rounded-full px-3 py-1.5 bg-accent hover:bg-accent/70">
             <Shuffle className="h-3 w-3" /> Swap colors
           </button>
         )}
+      </div>
+      <div className="mb-4 text-xs text-muted-foreground">
+        {MODE_LABEL[mode]} · White {whiteTeam.length}/{caps.white} · Black {blackTeam.length}/{caps.black}
       </div>
 
       <div className="space-y-2">
@@ -373,6 +380,10 @@ function WaitingRoom({
                 </button>
               ) : isHost ? (
                 <div className="flex gap-1">
+                  <button
+                    onClick={() => onSetTeam(m.id, m.team === "white" ? "black" : "white")}
+                    title="Switch team"
+                    className="p-1.5 rounded-lg hover:bg-accent"><Shuffle className="h-3.5 w-3.5" /></button>
                   <button onClick={() => onTransferHost(m.user_id)} title="Transfer host"
                     className="p-1.5 rounded-lg hover:bg-accent"><ShieldCheck className="h-3.5 w-3.5" /></button>
                   <button onClick={() => onKick(m.id)} title="Kick"
@@ -409,10 +420,10 @@ function WaitingRoom({
       {isHost && (
         <button
           onClick={onStart}
-          disabled={players.length < 2}
+          disabled={players.length < MIN_PLAYERS[mode] || !whiteTeam.length || !blackTeam.length}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 disabled:opacity-50 transition"
         >
-          <Play className="h-4 w-4" /> Start game {allReady ? "" : players.length < 2 ? "(need 2 players)" : "(some players not ready)"}
+          <Play className="h-4 w-4" /> Start game {players.length < MIN_PLAYERS[mode] ? `(need ${MIN_PLAYERS[mode]} players)` : allReady ? "" : "(some players not ready)"}
         </button>
       )}
       {!isHost && (
@@ -423,18 +434,25 @@ function WaitingRoom({
 }
 
 function GameView({
-  game, lobby, userId, theme, onThemeChange, profileById,
+  game, lobby, userId, theme, onThemeChange, profileById, players, mode,
 }: {
   game: Game; lobby: Lobby; userId: string; theme: BoardTheme;
   onThemeChange: (t: BoardTheme) => void; profileById: Map<string, Profile>;
+  players: Member[]; mode: ChessMode;
 }) {
-  const isWhite = game.white_id === userId;
-  const isBlack = game.black_id === userId;
-  const isPlayer = isWhite || isBlack;
+  const whiteTeam = players.filter((p) => p.team === "white");
+  const blackTeam = players.filter((p) => p.team === "black");
+  const myTeam: "white" | "black" | null =
+    whiteTeam.some((p) => p.user_id === userId) ? "white"
+    : blackTeam.some((p) => p.user_id === userId) ? "black"
+    : game.white_id === userId ? "white"
+    : game.black_id === userId ? "black"
+    : null;
+  const isWhite = myTeam === "white";
+  const isBlack = myTeam === "black";
+  const isPlayer = !!myTeam;
   const orientation: "white" | "black" = isBlack ? "black" : "white";
   const chess = useMemo(() => { const c = new Chess(); try { c.load(game.fen); } catch { /*noop*/ } return c; }, [game.fen]);
-  const myTurn = isPlayer && chess.turn() === (isWhite ? "w" : "b");
-  const disabled = !isPlayer || !myTurn || game.status !== "active";
 
   const [lastMove, setLastMove] = useState<{ from: any; to: any } | null>(null);
 
@@ -443,6 +461,14 @@ function GameView({
     if (game.pgn) { try { c.loadPgn(game.pgn); } catch { /*noop*/ } }
     return c.history({ verbose: true }) as Array<{ san: string; color: "w" | "b"; captured?: string; piece: string; from: any; to: any }>;
   }, [game.pgn]);
+
+  const turnColor = chess.turn();
+  const movesByTurnColor = history.filter((h) => h.color === turnColor).length;
+  const teamToMove = turnColor === "w" ? whiteTeam : blackTeam;
+  const moverId = activeMoverId(teamToMove, movesByTurnColor) ?? (turnColor === "w" ? game.white_id : game.black_id);
+  const myTurn = isPlayer && turnColor === (isWhite ? "w" : "b") && (teamToMove.length <= 1 || moverId === userId);
+  const disabled = !myTurn || game.status !== "active";
+  const moverName = profileById.get(moverId ?? "")?.display_name ?? (turnColor === "w" ? "White" : "Black");
 
   useEffect(() => {
     if (history.length > 0) {
@@ -506,6 +532,13 @@ function GameView({
         onMove={handleMove}
         lastMove={lastMove}
       />
+
+      {mode !== "1v1" && game.status === "active" && (
+        <div className="mt-3 rounded-2xl border border-border/60 bg-background/40 px-3 py-2 text-xs text-center">
+          {MODE_LABEL[mode]} — <span className="font-semibold">{moverName}</span> to move
+          {myTurn ? " (that's you)" : isPlayer && turnColor === (isWhite ? "w" : "b") ? " — your teammate's turn" : ""}
+        </div>
+      )}
 
       <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
         <PlayerBar name={orientation === "white" ? whiteName : blackName} color={orientation === "white" ? "w" : "b"} captured={orientation === "white" ? capturedByWhite : capturedByBlack} isTurn={chess.turn() === (orientation === "white" ? "w" : "b")} />
