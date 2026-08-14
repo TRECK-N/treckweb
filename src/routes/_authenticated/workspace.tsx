@@ -141,8 +141,8 @@ function Workspace() {
     if (!exists) return toast.error("Folder not found");
     const table = kind === "note" ? "notes" : "workspace_files";
     await supabase.from(table).update({ folder_id: clean }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
     toast.success("Moved");
   };
 
@@ -150,18 +150,18 @@ function Workspace() {
     if (!activeFolder) return;
     const { data } = await supabase.from("notes")
       .insert({ user_id: user.id, folder_id: activeFolder, title: "Untitled note", content: "" }).select().single();
-    if (data) qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    if (data) qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const updateNote = async (id: string, patch: { title?: string; content?: string; pinned?: boolean }) => {
     await supabase.from("notes").update(patch).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const deleteNote = async (id: string) => {
     if (!confirm("Delete note?")) return;
     await supabase.from("notes").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const uploadFile = async (file: File) => {
@@ -173,7 +173,7 @@ function Workspace() {
       user_id: user.id, folder_id: activeFolder,
       name: file.name, storage_path: path, mime_type: file.type, size: file.size,
     });
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
     toast.success("Uploaded");
   };
 
@@ -189,7 +189,7 @@ function Workspace() {
     if (!confirm("Delete file?")) return;
     await supabase.storage.from("workspace").remove([path]);
     await supabase.from("workspace_files").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const filteredNotes = notes.filter((n) => n.title.toLowerCase().includes(search.toLowerCase()) || (n.content ?? "").toLowerCase().includes(search.toLowerCase()));
