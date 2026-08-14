@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { setSessionPersistence } from "@/lib/session-persistence";
-import logoAsset from "@/assets/treckweb-logo.png.asset.json";
+import logoAsset from "@/assets/webuweb-mark.png.asset.json";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
