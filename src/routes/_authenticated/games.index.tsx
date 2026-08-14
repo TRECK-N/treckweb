@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Gamepad2, Play, Crown, Brain } from "lucide-react";
+import { Gamepad2, Play, Crown, Brain, Grid3x3, Bomb } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/games/")({
   component: GamesPage,
@@ -12,7 +12,7 @@ type Game = {
   description: string;
   gradient: string;
   icon: typeof Gamepad2;
-  to: "/games/snake" | "/games/memory" | "/games/chess";
+  to: "/games/snake" | "/games/memory" | "/games/chess" | "/games/2048" | "/games/minesweeper";
   badge?: string;
 };
 
@@ -41,6 +41,24 @@ const GAMES: Game[] = [
     gradient: "from-fuchsia-500 via-purple-500 to-primary",
     icon: Brain,
     to: "/games/memory",
+  },
+  {
+    id: "2048",
+    title: "2048",
+    description: "Slide, merge, repeat. Simple rules, impossible to put down.",
+    gradient: "from-amber-500 via-orange-500 to-rose-400",
+    icon: Grid3x3,
+    to: "/games/2048",
+    badge: "New",
+  },
+  {
+    id: "minesweeper",
+    title: "Minesweeper",
+    description: "Read the numbers, flag the mines, clear the field before it clears you.",
+    gradient: "from-sky-500 via-indigo-500 to-purple-500",
+    icon: Bomb,
+    to: "/games/minesweeper",
+    badge: "New",
   },
 ];
 
