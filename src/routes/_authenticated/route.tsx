@@ -130,6 +130,7 @@ function SidebarInner({
   pathname: string; displayName: string; initials: string; avatar?: string | null;
   onSignOut: () => void; theme: string; toggleTheme: () => void; isPro: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col h-full p-4">
       <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg px-2 py-2">
@@ -158,7 +159,7 @@ function SidebarInner({
                 />
               )}
               <item.icon className="relative h-4 w-4" />
-              <span className="relative flex-1">{item.label}</span>
+              <span className="relative flex-1">{t(item.labelKey, item.label)}</span>
               {"locked" in item && item.locked && (
                 <Lock className="relative h-3.5 w-3.5 text-muted-foreground" />
               )}
