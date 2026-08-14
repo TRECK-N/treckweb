@@ -33,6 +33,27 @@ function Workspace() {
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<"universe" | "list">("universe");
+
+  const { data: counts = new Map<string, UniverseCounts>() } = useQuery({
+    queryKey: ["workspace-counts", user.id],
+    queryFn: async () => {
+      const [{ data: allNotes }, { data: allFiles }] = await Promise.all([
+        supabase.from("notes").select("folder_id").eq("user_id", user.id),
+        supabase.from("workspace_files").select("folder_id").eq("user_id", user.id),
+      ]);
+      const m = new Map<string, UniverseCounts>();
+      const bump = (id: string | null, key: keyof UniverseCounts) => {
+        if (!id) return;
+        const c = m.get(id) ?? { notes: 0, files: 0 };
+        c[key] += 1;
+        m.set(id, c);
+      };
+      (allNotes ?? []).forEach((n) => bump(n.folder_id, "notes"));
+      (allFiles ?? []).forEach((f) => bump(f.folder_id, "files"));
+      return m;
+    },
+  });
 
   const { data: folders = [] } = useQuery({
     queryKey: ["folders", user.id],
