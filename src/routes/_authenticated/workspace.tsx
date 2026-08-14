@@ -5,9 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   FolderPlus, Folder, FolderOpen, Plus, Pin, Trash2, Search, Upload, File as FileIcon, Pencil,
-  ChevronRight, ChevronDown, Home, ArrowRightLeft,
+  ChevronRight, ChevronDown, Home, ArrowRightLeft, Orbit, LayoutGrid,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { WorkspaceUniverse, type UniverseCounts } from "@/components/workspace-universe";
 
 export const Route = createFileRoute("/_authenticated/workspace")({
   component: Workspace,
@@ -32,6 +33,27 @@ function Workspace() {
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<"universe" | "list">("universe");
+
+  const { data: counts = new Map<string, UniverseCounts>() } = useQuery({
+    queryKey: ["workspace-counts", user.id],
+    queryFn: async () => {
+      const [{ data: allNotes }, { data: allFiles }] = await Promise.all([
+        supabase.from("notes").select("folder_id").eq("user_id", user.id),
+        supabase.from("workspace_files").select("folder_id").eq("user_id", user.id),
+      ]);
+      const m = new Map<string, UniverseCounts>();
+      const bump = (id: string | null, key: keyof UniverseCounts) => {
+        if (!id) return;
+        const c = m.get(id) ?? { notes: 0, files: 0 };
+        c[key] += 1;
+        m.set(id, c);
+      };
+      (allNotes ?? []).forEach((n) => bump(n.folder_id, "notes"));
+      (allFiles ?? []).forEach((f) => bump(f.folder_id, "files"));
+      return m;
+    },
+  });
 
   const { data: folders = [] } = useQuery({
     queryKey: ["folders", user.id],
@@ -119,8 +141,8 @@ function Workspace() {
     if (!exists) return toast.error("Folder not found");
     const table = kind === "note" ? "notes" : "workspace_files";
     await supabase.from(table).update({ folder_id: clean }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
     toast.success("Moved");
   };
 
@@ -128,18 +150,18 @@ function Workspace() {
     if (!activeFolder) return;
     const { data } = await supabase.from("notes")
       .insert({ user_id: user.id, folder_id: activeFolder, title: "Untitled note", content: "" }).select().single();
-    if (data) qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    if (data) qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const updateNote = async (id: string, patch: { title?: string; content?: string; pinned?: boolean }) => {
     await supabase.from("notes").update(patch).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const deleteNote = async (id: string) => {
     if (!confirm("Delete note?")) return;
     await supabase.from("notes").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const uploadFile = async (file: File) => {
@@ -151,7 +173,7 @@ function Workspace() {
       user_id: user.id, folder_id: activeFolder,
       name: file.name, storage_path: path, mime_type: file.type, size: file.size,
     });
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
     toast.success("Uploaded");
   };
 
@@ -167,7 +189,7 @@ function Workspace() {
     if (!confirm("Delete file?")) return;
     await supabase.storage.from("workspace").remove([path]);
     await supabase.from("workspace_files").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
   };
 
   const filteredNotes = notes.filter((n) => n.title.toLowerCase().includes(search.toLowerCase()) || (n.content ?? "").toLowerCase().includes(search.toLowerCase()));
@@ -253,12 +275,33 @@ function Workspace() {
               <FolderPlus className="h-3.5 w-3.5" />New subfolder
             </button>
           )}
+          <div className="glass inline-flex gap-1 rounded-full border border-border/60 p-1">
+            <button onClick={() => setView("universe")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${view === "universe" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <Orbit className="h-3.5 w-3.5" /> Universe
+            </button>
+            <button onClick={() => setView("list")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <LayoutGrid className="h-3.5 w-3.5" /> Content
+            </button>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="pl-9 pr-3 py-2 rounded-xl border border-border bg-background/40 text-sm outline-none w-40 sm:w-64 focus:border-primary" />
           </div>
         </header>
 
+        {view === "universe" ? (
+          <div className="flex-1 min-h-0 p-4">
+            <WorkspaceUniverse
+              folders={folders}
+              activeFolder={activeFolder}
+              counts={counts}
+              onSelect={setActiveFolder}
+              onCreateFolder={createFolder}
+            />
+          </div>
+        ) : (
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           {!activeFolder ? (
             <div className="text-center text-muted-foreground py-16">Select or create a folder to get started.</div>
@@ -354,6 +397,7 @@ function Workspace() {
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   );

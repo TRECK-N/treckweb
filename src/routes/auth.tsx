@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { setSessionPersistence } from "@/lib/session-persistence";
-import logoAsset from "@/assets/treckweb-logo.png.asset.json";
+import logoAsset from "@/assets/webuweb-mark.png.asset.json";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
@@ -117,7 +117,7 @@ function AuthPage() {
           className="hidden lg:block"
         >
           <div className="flex items-center gap-3">
-            <img src={logoAsset.url} alt="WebuWeb" className="h-11 w-11 rounded-2xl object-cover ring-1 ring-border/60" />
+            <img src={logoAsset.url} alt="WebuWeb" className="h-12 w-12 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.4)]" />
             <span className="text-xl font-semibold tracking-tight">WebuWeb</span>
           </div>
           <h1 className="mt-10 text-5xl font-semibold leading-[1.05] tracking-tight">
@@ -147,7 +147,7 @@ function AuthPage() {
           className="glass mx-auto w-full max-w-md rounded-3xl p-8 shadow-[var(--shadow-elevated)]"
         >
           <div className="flex items-center gap-2.5 lg:hidden">
-            <img src={logoAsset.url} alt="WebuWeb" className="h-9 w-9 rounded-xl object-cover ring-1 ring-border/60" />
+            <img src={logoAsset.url} alt="WebuWeb" className="h-9 w-9 object-contain" />
             <span className="text-lg font-semibold tracking-tight">WebuWeb</span>
           </div>
 

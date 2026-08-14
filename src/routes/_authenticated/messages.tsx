@@ -61,7 +61,7 @@ function MessagesLayout() {
           {accepted.length === 0 && (
             <div className="p-6 text-center text-sm text-muted-foreground">
               Add friends first from{" "}
-              <Link to="/friends" className="text-primary hover:underline">Friends</Link>.
+              <Link to="/chat" className="text-primary hover:underline">Chat</Link>.
             </div>
           )}
           {accepted.map((f) => {

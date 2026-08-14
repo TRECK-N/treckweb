@@ -73,33 +73,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_messages: {
-        Row: {
-          attachments: Json
-          content: string | null
-          created_at: string
-          edited_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          attachments?: Json
-          content?: string | null
-          created_at?: string
-          edited_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          attachments?: Json
-          content?: string | null
-          created_at?: string
-          edited_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       chess_games: {
         Row: {
           black_id: string | null

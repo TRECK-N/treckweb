@@ -19,13 +19,13 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedMembershipRouteImport } from './routes/_authenticated/membership'
-import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
+import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
@@ -81,11 +81,6 @@ const AuthenticatedMembershipRoute = AuthenticatedMembershipRouteImport.update({
   path: '/membership',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
-  id: '/friends',
-  path: '/friends',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -117,6 +112,12 @@ const AuthenticatedMessagesUserIdRoute =
     id: '/$userId',
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdRoute =
+  AuthenticatedGroupsGroupIdRouteImport.update({
+    id: '/groups/$groupId',
+    path: '/groups/$groupId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
   id: '/games/snake',
@@ -153,7 +154,6 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/friends': typeof AuthenticatedFriendsRoute
   '/membership': typeof AuthenticatedMembershipRoute
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/music': typeof AuthenticatedMusicRoute
@@ -163,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/games/': typeof AuthenticatedGamesIndexRoute
@@ -176,7 +177,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/friends': typeof AuthenticatedFriendsRoute
   '/membership': typeof AuthenticatedMembershipRoute
   '/music': typeof AuthenticatedMusicRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -185,6 +185,7 @@ export interface FileRoutesByTo {
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/games': typeof AuthenticatedGamesIndexRoute
@@ -200,7 +201,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/friends': typeof AuthenticatedFriendsRoute
   '/_authenticated/membership': typeof AuthenticatedMembershipRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/music': typeof AuthenticatedMusicRoute
@@ -210,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/_authenticated/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
+  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
@@ -225,7 +226,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/chat'
     | '/dashboard'
-    | '/friends'
     | '/membership'
     | '/messages'
     | '/music'
@@ -235,6 +235,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/games/memory'
     | '/games/snake'
+    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai/'
     | '/games/'
@@ -248,7 +249,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/chat'
     | '/dashboard'
-    | '/friends'
     | '/membership'
     | '/music'
     | '/settings'
@@ -257,6 +257,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/games/memory'
     | '/games/snake'
+    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai'
     | '/games'
@@ -271,7 +272,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
-    | '/_authenticated/friends'
     | '/_authenticated/membership'
     | '/_authenticated/messages'
     | '/_authenticated/music'
@@ -281,6 +281,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ai/$threadId'
     | '/_authenticated/games/memory'
     | '/_authenticated/games/snake'
+    | '/_authenticated/groups/$groupId'
     | '/_authenticated/messages/$userId'
     | '/_authenticated/ai/'
     | '/_authenticated/games/'
@@ -369,13 +370,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMembershipRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/friends': {
-      id: '/_authenticated/friends'
-      path: '/friends'
-      fullPath: '/friends'
-      preLoaderRoute: typeof AuthenticatedFriendsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -417,6 +411,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/messages/$userId'
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
+    }
+    '/_authenticated/groups/$groupId': {
+      id: '/_authenticated/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/games/snake': {
       id: '/_authenticated/games/snake'
@@ -474,7 +475,6 @@ const AuthenticatedMessagesRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
   AuthenticatedMembershipRoute: typeof AuthenticatedMembershipRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
@@ -483,6 +483,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
   AuthenticatedGamesMemoryRoute: typeof AuthenticatedGamesMemoryRoute
   AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
+  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
   AuthenticatedGamesChessLobbyIdRoute: typeof AuthenticatedGamesChessLobbyIdRoute
@@ -492,7 +493,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
   AuthenticatedMembershipRoute: AuthenticatedMembershipRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedMusicRoute: AuthenticatedMusicRoute,
@@ -501,6 +501,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
   AuthenticatedGamesMemoryRoute: AuthenticatedGamesMemoryRoute,
   AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
+  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
   AuthenticatedGamesChessLobbyIdRoute: AuthenticatedGamesChessLobbyIdRoute,

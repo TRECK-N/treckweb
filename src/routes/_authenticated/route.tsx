@@ -13,7 +13,7 @@ import { ProBadge } from "@/components/pro-badge";
 import { MusicPlayerProvider } from "@/components/music-player-provider";
 import { MiniPlayer } from "@/components/mini-player";
 import { shouldDropSession, clearSessionPersistence } from "@/lib/session-persistence";
-import logoAsset from "@/assets/treckweb-logo.png.asset.json";
+import logoAsset from "@/assets/webuweb-mark.png.asset.json";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -105,7 +105,7 @@ function AuthLayout() {
               <Menu className="h-5 w-5" />
             </button>
             <Link to="/dashboard" className="flex items-center gap-2 font-bold">
-              <img src={logoAsset.url} alt="WebuWeb" className="h-8 w-8 rounded-full object-cover ring-1 ring-primary/40" />
+              <img src={logoAsset.url} alt="WebuWeb" className="h-8 w-8 object-contain" />
               WebuWeb
             </Link>
             <div className="w-9" />
@@ -131,7 +131,7 @@ function SidebarInner({
   return (
     <div className="flex flex-col h-full p-4">
       <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg px-2 py-2">
-        <img src={logoAsset.url} alt="WebuWeb" className="h-9 w-9 rounded-full object-cover ring-1 ring-primary/40 shadow-[var(--shadow-glow)]" />
+        <img src={logoAsset.url} alt="WebuWeb" className="h-9 w-9 object-contain drop-shadow-[0_0_14px_hsl(var(--primary)/0.45)]" />
         WebuWeb
       </Link>
 
