@@ -291,7 +291,7 @@ function SearchPage() {
                     <ResultSection title="Groups" icon={Users}>
                       <div className="grid gap-2 sm:grid-cols-2">
                         {results.groups.slice(0, category === "all" ? 4 : 20).map((g) => (
-                          <Link key={g.id} to="/groups/$groupId" params={{ groupId: g.id }}
+                          <Link key={g.id} to="/chat"
                             className="glass rounded-2xl p-3 flex items-center gap-3 hover:bg-accent/40 transition">
                             <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-primary/40 to-primary-glow/40 grid place-items-center text-primary-foreground overflow-hidden">
                               {g.avatar_url ? <img src={g.avatar_url} alt="" className="h-full w-full object-cover" /> : <Users className="h-5 w-5" />}
