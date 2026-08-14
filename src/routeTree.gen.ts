@@ -25,6 +25,7 @@ import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
+import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
@@ -112,6 +113,12 @@ const AuthenticatedMessagesUserIdRoute =
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
+const AuthenticatedGroupsGroupIdRoute =
+  AuthenticatedGroupsGroupIdRouteImport.update({
+    id: '/groups/$groupId',
+    path: '/groups/$groupId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
   id: '/games/snake',
   path: '/games/snake',
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/games/': typeof AuthenticatedGamesIndexRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/games': typeof AuthenticatedGamesIndexRoute
@@ -201,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/_authenticated/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
+  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/games/memory'
     | '/games/snake'
+    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai/'
     | '/games/'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/games/memory'
     | '/games/snake'
+    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai'
     | '/games'
@@ -269,6 +281,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ai/$threadId'
     | '/_authenticated/games/memory'
     | '/_authenticated/games/snake'
+    | '/_authenticated/groups/$groupId'
     | '/_authenticated/messages/$userId'
     | '/_authenticated/ai/'
     | '/_authenticated/games/'
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
+    '/_authenticated/groups/$groupId': {
+      id: '/_authenticated/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/games/snake': {
       id: '/_authenticated/games/snake'
       path: '/games/snake'
@@ -463,6 +483,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
   AuthenticatedGamesMemoryRoute: typeof AuthenticatedGamesMemoryRoute
   AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
+  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
   AuthenticatedGamesChessLobbyIdRoute: typeof AuthenticatedGamesChessLobbyIdRoute
@@ -480,6 +501,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
   AuthenticatedGamesMemoryRoute: AuthenticatedGamesMemoryRoute,
   AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
+  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
   AuthenticatedGamesChessLobbyIdRoute: AuthenticatedGamesChessLobbyIdRoute,
