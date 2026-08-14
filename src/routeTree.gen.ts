@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiStudyGenerateRouteImport } from './routes/api/study-generate'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -49,6 +50,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudyGenerateRoute = ApiStudyGenerateRouteImport.update({
+  id: '/api/study-generate',
+  path: '/api/study-generate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/study-generate': typeof ApiStudyGenerateRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/study-generate': typeof ApiStudyGenerateRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/study-generate': typeof ApiStudyGenerateRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/_authenticated/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/workspace'
     | '/api/chat'
+    | '/api/study-generate'
     | '/ai/$threadId'
     | '/games/memory'
     | '/games/snake'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/workspace'
     | '/api/chat'
+    | '/api/study-generate'
     | '/ai/$threadId'
     | '/games/memory'
     | '/games/snake'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/workspace'
     | '/api/chat'
+    | '/api/study-generate'
     | '/_authenticated/ai/$threadId'
     | '/_authenticated/games/memory'
     | '/_authenticated/games/snake'
@@ -296,6 +308,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiStudyGenerateRoute: typeof ApiStudyGenerateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/study-generate': {
+      id: '/api/study-generate'
+      path: '/api/study-generate'
+      fullPath: '/api/study-generate'
+      preLoaderRoute: typeof ApiStudyGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -517,6 +537,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiStudyGenerateRoute: ApiStudyGenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
