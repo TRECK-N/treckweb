@@ -32,6 +32,8 @@ import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authentic
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedGamesChessIndexRouteImport } from './routes/_authenticated/games.chess.index'
+import { Route as AuthenticatedStudyQuizQuizIdRouteImport } from './routes/_authenticated/study.quiz.$quizId'
+import { Route as AuthenticatedStudyDeckDeckIdRouteImport } from './routes/_authenticated/study.deck.$deckId'
 import { Route as AuthenticatedGamesChessLobbyIdRouteImport } from './routes/_authenticated/games.chess.$lobbyId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -153,6 +155,18 @@ const AuthenticatedGamesChessIndexRoute =
     path: '/games/chess/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStudyQuizQuizIdRoute =
+  AuthenticatedStudyQuizQuizIdRouteImport.update({
+    id: '/study/quiz/$quizId',
+    path: '/study/quiz/$quizId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudyDeckDeckIdRoute =
+  AuthenticatedStudyDeckDeckIdRouteImport.update({
+    id: '/study/deck/$deckId',
+    path: '/study/deck/$deckId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGamesChessLobbyIdRoute =
   AuthenticatedGamesChessLobbyIdRouteImport.update({
     id: '/games/chess/$lobbyId',
@@ -183,6 +197,8 @@ export interface FileRoutesByFullPath {
   '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/study/': typeof AuthenticatedStudyIndexRoute
   '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/study/deck/$deckId': typeof AuthenticatedStudyDeckDeckIdRoute
+  '/study/quiz/$quizId': typeof AuthenticatedStudyQuizQuizIdRoute
   '/games/chess/': typeof AuthenticatedGamesChessIndexRoute
 }
 export interface FileRoutesByTo {
@@ -207,6 +223,8 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesIndexRoute
   '/study': typeof AuthenticatedStudyIndexRoute
   '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/study/deck/$deckId': typeof AuthenticatedStudyDeckDeckIdRoute
+  '/study/quiz/$quizId': typeof AuthenticatedStudyQuizQuizIdRoute
   '/games/chess': typeof AuthenticatedGamesChessIndexRoute
 }
 export interface FileRoutesById {
@@ -234,6 +252,8 @@ export interface FileRoutesById {
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/study/': typeof AuthenticatedStudyIndexRoute
   '/_authenticated/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/_authenticated/study/deck/$deckId': typeof AuthenticatedStudyDeckDeckIdRoute
+  '/_authenticated/study/quiz/$quizId': typeof AuthenticatedStudyQuizQuizIdRoute
   '/_authenticated/games/chess/': typeof AuthenticatedGamesChessIndexRoute
 }
 export interface FileRouteTypes {
@@ -261,6 +281,8 @@ export interface FileRouteTypes {
     | '/messages/'
     | '/study/'
     | '/games/chess/$lobbyId'
+    | '/study/deck/$deckId'
+    | '/study/quiz/$quizId'
     | '/games/chess/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -285,6 +307,8 @@ export interface FileRouteTypes {
     | '/messages'
     | '/study'
     | '/games/chess/$lobbyId'
+    | '/study/deck/$deckId'
+    | '/study/quiz/$quizId'
     | '/games/chess'
   id:
     | '__root__'
@@ -311,6 +335,8 @@ export interface FileRouteTypes {
     | '/_authenticated/messages/'
     | '/_authenticated/study/'
     | '/_authenticated/games/chess/$lobbyId'
+    | '/_authenticated/study/deck/$deckId'
+    | '/_authenticated/study/quiz/$quizId'
     | '/_authenticated/games/chess/'
   fileRoutesById: FileRoutesById
 }
@@ -486,6 +512,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGamesChessIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/study/quiz/$quizId': {
+      id: '/_authenticated/study/quiz/$quizId'
+      path: '/study/quiz/$quizId'
+      fullPath: '/study/quiz/$quizId'
+      preLoaderRoute: typeof AuthenticatedStudyQuizQuizIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/study/deck/$deckId': {
+      id: '/_authenticated/study/deck/$deckId'
+      path: '/study/deck/$deckId'
+      fullPath: '/study/deck/$deckId'
+      preLoaderRoute: typeof AuthenticatedStudyDeckDeckIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/games/chess/$lobbyId': {
       id: '/_authenticated/games/chess/$lobbyId'
       path: '/games/chess/$lobbyId'
@@ -527,6 +567,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
   AuthenticatedStudyIndexRoute: typeof AuthenticatedStudyIndexRoute
   AuthenticatedGamesChessLobbyIdRoute: typeof AuthenticatedGamesChessLobbyIdRoute
+  AuthenticatedStudyDeckDeckIdRoute: typeof AuthenticatedStudyDeckDeckIdRoute
+  AuthenticatedStudyQuizQuizIdRoute: typeof AuthenticatedStudyQuizQuizIdRoute
   AuthenticatedGamesChessIndexRoute: typeof AuthenticatedGamesChessIndexRoute
 }
 
@@ -546,6 +588,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
   AuthenticatedStudyIndexRoute: AuthenticatedStudyIndexRoute,
   AuthenticatedGamesChessLobbyIdRoute: AuthenticatedGamesChessLobbyIdRoute,
+  AuthenticatedStudyDeckDeckIdRoute: AuthenticatedStudyDeckDeckIdRoute,
+  AuthenticatedStudyQuizQuizIdRoute: AuthenticatedStudyQuizQuizIdRoute,
   AuthenticatedGamesChessIndexRoute: AuthenticatedGamesChessIndexRoute,
 }
 
