@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Crown, Check, Lock, Music, Bot, Image as ImageIcon, Paperclip } from "lucide-react";
+import { Crown, Check, Lock, Sparkles, Music, Bot, Image as ImageIcon, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 
