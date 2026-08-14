@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search as SearchIcon, X, Loader2, User, Users, FileText, FolderOpen, File, Crown, BookOpen } from "lucide-react";
+import { Search as SearchIcon, X, Loader2, Users, FileText, FolderOpen, File, Crown, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialAvatar } from "@/components/social-avatar";
 
@@ -195,5 +195,3 @@ function Row({
     </Link>
   );
 }
-
-function _unusedUser() { return User; }
