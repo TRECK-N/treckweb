@@ -5,9 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   FolderPlus, Folder, FolderOpen, Plus, Pin, Trash2, Search, Upload, File as FileIcon, Pencil,
-  ChevronRight, ChevronDown, Home, ArrowRightLeft,
+  ChevronRight, ChevronDown, Home, ArrowRightLeft, Orbit, LayoutGrid,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { WorkspaceUniverse, type UniverseCounts } from "@/components/workspace-universe";
 
 export const Route = createFileRoute("/_authenticated/workspace")({
   component: Workspace,
