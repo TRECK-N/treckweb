@@ -15,6 +15,7 @@ import { MiniPlayer } from "@/components/mini-player";
 import { shouldDropSession, clearSessionPersistence } from "@/lib/session-persistence";
 import logoAsset from "@/assets/webuweb-mark.png.asset.json";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -32,15 +33,15 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const NAV = [
-  { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/ai", label: "AI Assistant", icon: Bot },
-  { to: "/chat", label: "Chat", icon: MessageCircle },
-  { to: "/workspace", label: "Workspace", icon: FolderOpen },
-  { to: "/study", label: "Study", icon: GraduationCap },
-  { to: "/games", label: "Games", icon: Gamepad2 },
-  { to: "/music", label: "Music", icon: Music, locked: true },
-  { to: "/membership", label: "Membership", icon: Crown },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/dashboard", labelKey: "nav.home", label: "Home", icon: Home },
+  { to: "/ai", labelKey: "nav.ai", label: "AI Assistant", icon: Bot },
+  { to: "/chat", labelKey: "nav.chat", label: "Chat", icon: MessageCircle },
+  { to: "/workspace", labelKey: "nav.workspace", label: "Workspace", icon: FolderOpen },
+  { to: "/study", labelKey: "nav.study", label: "Study", icon: GraduationCap },
+  { to: "/games", labelKey: "nav.games", label: "Games", icon: Gamepad2 },
+  { to: "/music", labelKey: "nav.music", label: "Music", icon: Music, locked: true },
+  { to: "/membership", labelKey: "nav.membership", label: "Membership", icon: Crown },
+  { to: "/settings", labelKey: "nav.settings", label: "Settings", icon: Settings },
 ] as const;
 
 
@@ -129,6 +130,7 @@ function SidebarInner({
   pathname: string; displayName: string; initials: string; avatar?: string | null;
   onSignOut: () => void; theme: string; toggleTheme: () => void; isPro: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col h-full p-4">
       <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg px-2 py-2">
@@ -157,7 +159,7 @@ function SidebarInner({
                 />
               )}
               <item.icon className="relative h-4 w-4" />
-              <span className="relative flex-1">{item.label}</span>
+              <span className="relative flex-1">{t(item.labelKey, item.label)}</span>
               {"locked" in item && item.locked && (
                 <Lock className="relative h-3.5 w-3.5 text-muted-foreground" />
               )}

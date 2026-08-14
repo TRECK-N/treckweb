@@ -29,7 +29,9 @@ import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
+import { Route as AuthenticatedGamesMinesweeperRouteImport } from './routes/_authenticated/games.minesweeper'
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
+import { Route as AuthenticatedGames2048RouteImport } from './routes/_authenticated/games.2048'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedGamesChessIndexRouteImport } from './routes/_authenticated/games.chess.index'
 import { Route as AuthenticatedStudyQuizQuizIdRouteImport } from './routes/_authenticated/study.quiz.$quizId'
@@ -138,12 +140,23 @@ const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
   path: '/games/snake',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGamesMinesweeperRoute =
+  AuthenticatedGamesMinesweeperRouteImport.update({
+    id: '/games/minesweeper',
+    path: '/games/minesweeper',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGamesMemoryRoute =
   AuthenticatedGamesMemoryRouteImport.update({
     id: '/games/memory',
     path: '/games/memory',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGames2048Route = AuthenticatedGames2048RouteImport.update({
+  id: '/games/2048',
+  path: '/games/2048',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
   id: '/ai/$threadId',
   path: '/ai/$threadId',
@@ -188,7 +201,9 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/study-generate': typeof ApiStudyGenerateRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/games/2048': typeof AuthenticatedGames2048Route
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
+  '/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
@@ -214,7 +229,9 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/study-generate': typeof ApiStudyGenerateRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/games/2048': typeof AuthenticatedGames2048Route
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
+  '/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
@@ -243,7 +260,9 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/study-generate': typeof ApiStudyGenerateRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/_authenticated/games/2048': typeof AuthenticatedGames2048Route
   '/_authenticated/games/memory': typeof AuthenticatedGamesMemoryRoute
+  '/_authenticated/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
@@ -272,7 +291,9 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/study-generate'
     | '/ai/$threadId'
+    | '/games/2048'
     | '/games/memory'
+    | '/games/minesweeper'
     | '/games/snake'
     | '/groups/$groupId'
     | '/messages/$userId'
@@ -298,7 +319,9 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/study-generate'
     | '/ai/$threadId'
+    | '/games/2048'
     | '/games/memory'
+    | '/games/minesweeper'
     | '/games/snake'
     | '/groups/$groupId'
     | '/messages/$userId'
@@ -326,7 +349,9 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/study-generate'
     | '/_authenticated/ai/$threadId'
+    | '/_authenticated/games/2048'
     | '/_authenticated/games/memory'
+    | '/_authenticated/games/minesweeper'
     | '/_authenticated/games/snake'
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/messages/$userId'
@@ -491,11 +516,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGamesSnakeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/games/minesweeper': {
+      id: '/_authenticated/games/minesweeper'
+      path: '/games/minesweeper'
+      fullPath: '/games/minesweeper'
+      preLoaderRoute: typeof AuthenticatedGamesMinesweeperRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/games/memory': {
       id: '/_authenticated/games/memory'
       path: '/games/memory'
       fullPath: '/games/memory'
       preLoaderRoute: typeof AuthenticatedGamesMemoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games/2048': {
+      id: '/_authenticated/games/2048'
+      path: '/games/2048'
+      fullPath: '/games/2048'
+      preLoaderRoute: typeof AuthenticatedGames2048RouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ai/$threadId': {
@@ -560,7 +599,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
   AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
+  AuthenticatedGames2048Route: typeof AuthenticatedGames2048Route
   AuthenticatedGamesMemoryRoute: typeof AuthenticatedGamesMemoryRoute
+  AuthenticatedGamesMinesweeperRoute: typeof AuthenticatedGamesMinesweeperRoute
   AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
@@ -581,7 +622,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
   AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
+  AuthenticatedGames2048Route: AuthenticatedGames2048Route,
   AuthenticatedGamesMemoryRoute: AuthenticatedGamesMemoryRoute,
+  AuthenticatedGamesMinesweeperRoute: AuthenticatedGamesMinesweeperRoute,
   AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,

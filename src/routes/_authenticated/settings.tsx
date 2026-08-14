@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/theme-provider";
+import { LANGUAGES, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: Settings,
@@ -18,6 +19,7 @@ function Settings() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { lang, setLang, t } = useI18n();
   const [saving, setSaving] = useState(false);
   const [pwd, setPwd] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -192,13 +194,21 @@ function Settings() {
           <Field label="Username">
             <input value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} className={inp} />
           </Field>
-          <Field label="Language">
-            <select value={form.language} onChange={(e) => setForm((f) => ({ ...f, language: e.target.value }))} className={inp}>
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-              <option value="de">Deutsch</option>
+          <Field label={t("common.language")}>
+            <select
+              value={lang}
+              onChange={(e) => {
+                const next = e.target.value as typeof lang;
+                setLang(next);
+                setForm((f) => ({ ...f, language: next }));
+              }}
+              className={inp}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
+              ))}
             </select>
+            <p className="mt-1 text-xs text-muted-foreground">{t("settings.languageHint")}</p>
           </Field>
           <div className="sm:col-span-2">
             <Field label="Bio">

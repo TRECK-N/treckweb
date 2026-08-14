@@ -27,7 +27,8 @@ function ChessHome() {
 
   const [name, setName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
-  const [maxPlayers, setMaxPlayers] = useState(2);
+  const [mode, setMode] = useState<"1v1" | "2v2" | "2v1">("1v1");
+  const maxPlayers = mode === "2v2" ? 4 : mode === "2v1" ? 3 : 2;
   const [timeControl, setTimeControl] = useState<number | null>(null);
   const [chatEnabled, setChatEnabled] = useState(true);
   const [spectators, setSpectators] = useState(true);
@@ -79,7 +80,7 @@ function ChessHome() {
         time_control_seconds: timeControl,
         chat_enabled: chatEnabled,
         spectators_allowed: spectators,
-        settings: {},
+        settings: { mode },
       })
       .select("id")
       .single();
@@ -223,16 +224,18 @@ function ChessHome() {
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-wider text-muted-foreground">Max players</label>
+                <label className="text-xs uppercase tracking-wider text-muted-foreground">Match mode</label>
                 <select
-                  value={maxPlayers} onChange={(e) => setMaxPlayers(Number(e.target.value))}
+                  value={mode} onChange={(e) => setMode(e.target.value as "1v1" | "2v2" | "2v1")}
                   className="mt-1 w-full px-3 py-2.5 rounded-xl bg-background/50 border border-border/60 text-sm"
                 >
-                  <option value={2}>2 (Classic)</option>
-                  <option value={4}>4 (Team — coming soon)</option>
-                  <option value={6}>6 (coming soon)</option>
-                  <option value={10}>10 (coming soon)</option>
+                  <option value="1v1">1v1 — Classic (2 players)</option>
+                  <option value="2v2">2v2 — Teams, alternating moves (4 players)</option>
+                  <option value="2v1">2v1 — Handicap duo vs solo (3 players)</option>
                 </select>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  In team modes, teammates take turns making their side's moves.
+                </p>
               </div>
 
               <div>

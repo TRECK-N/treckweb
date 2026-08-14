@@ -32,6 +32,30 @@ type Game = {
 };
 type ChatMsg = { id: string; user_id: string; content: string; created_at: string };
 
+export type ChessMode = "1v1" | "2v2" | "2v1";
+const TEAM_CAPS: Record<ChessMode, { white: number; black: number }> = {
+  "1v1": { white: 1, black: 1 },
+  "2v2": { white: 2, black: 2 },
+  "2v1": { white: 2, black: 1 },
+};
+const MIN_PLAYERS: Record<ChessMode, number> = { "1v1": 2, "2v2": 4, "2v1": 3 };
+const MODE_LABEL: Record<ChessMode, string> = {
+  "1v1": "Classic 1v1",
+  "2v2": "Team 2v2 (alternating moves)",
+  "2v1": "Handicap 2v1",
+};
+
+function readMode(lobby: { settings?: Record<string, unknown> | null }): ChessMode {
+  const raw = (lobby?.settings as any)?.mode;
+  return raw === "2v2" || raw === "2v1" ? raw : "1v1";
+}
+
+/** In team modes the teammates alternate: mover index = (moves already made by that colour) % teamSize. */
+function activeMoverId(team: Member[], movesByColor: number): string | null {
+  if (!team.length) return null;
+  return team[movesByColor % team.length].user_id;
+}
+
 function ChessLobbyPage() {
   const { lobbyId } = Route.useParams();
   const { user } = Route.useRouteContext() as { user: { id: string } };
@@ -104,7 +128,13 @@ function ChessLobbyPage() {
         nav({ to: "/games/chess" });
         return;
       }
-      const team = role === "player" ? (playerCount === 0 ? "white" : "black") : null;
+      const m = readMode(lobby);
+      const cap = TEAM_CAPS[m];
+      const whiteCount = members.filter((x) => x.role === "player" && x.team === "white").length;
+      const blackCount = members.filter((x) => x.role === "player" && x.team === "black").length;
+      const team = role === "player"
+        ? (whiteCount < cap.white && whiteCount <= blackCount ? "white" : blackCount < cap.black ? "black" : "white")
+        : null;
       const { error } = await (supabase as any).from("chess_lobby_members")
         .insert({ lobby_id: lobbyId, user_id: user.id, role, team });
       if (error) toast.error(error.message);
@@ -146,6 +176,10 @@ function ChessLobbyPage() {
   const myMember = members.find((m) => m.user_id === user.id);
   const players = members.filter((m) => m.role === "player");
   const spectators = members.filter((m) => m.role === "spectator");
+  const mode = readMode(lobby);
+  const caps = TEAM_CAPS[mode];
+  const whiteTeam = players.filter((p) => p.team === "white");
+  const blackTeam = players.filter((p) => p.team === "black");
   const allReady = players.length >= 2 && players.every((p) => p.is_ready || p.user_id === lobby.host_id);
 
   const copyCode = () => {
@@ -184,10 +218,10 @@ function ChessLobbyPage() {
   };
 
   const startGame = async () => {
-    if (players.length < 2) { toast.error("Need at least 2 players"); return; }
-    // Assign white/black by team, fallback to joined order
-    const white = players.find((p) => p.team === "white") ?? players[0];
-    const black = players.find((p) => p.team === "black" && p.user_id !== white.user_id) ?? players.find((p) => p.user_id !== white.user_id)!;
+    if (!whiteTeam.length || !blackTeam.length) { toast.error("Both teams need at least one player"); return; }
+    if (players.length < MIN_PLAYERS[mode]) { toast.error(`${mode} needs ${MIN_PLAYERS[mode]} players`); return; }
+    const white = whiteTeam[0];
+    const black = blackTeam[0];
     const { error } = await (supabase as any).from("chess_games").insert({
       lobby_id: lobbyId,
       white_id: white.user_id,
@@ -195,6 +229,10 @@ function ChessLobbyPage() {
     });
     if (error) { toast.error(error.message); return; }
     await (supabase as any).from("chess_lobbies").update({ status: "playing" }).eq("id", lobbyId);
+  };
+
+  const setTeam = async (memberId: string, team: "white" | "black") => {
+    await (supabase as any).from("chess_lobby_members").update({ team }).eq("id", memberId);
   };
 
   const swapColors = async () => {
@@ -266,6 +304,8 @@ function ChessLobbyPage() {
                 theme={theme}
                 onThemeChange={setTheme}
                 profileById={profileById}
+                players={players}
+                mode={mode}
               />
             ) : game && game.status !== "active" ? (
               <FinishedGameView game={game} theme={theme} profileById={profileById} isHost={isHost} lobbyId={lobbyId} />
@@ -275,7 +315,8 @@ function ChessLobbyPage() {
                 profileById={profileById} lobby={lobby} isHost={isHost} me={user.id}
                 onKick={kick} onTransferHost={transferHost} onToggleReady={toggleReady}
                 onStart={startGame} onSwapColors={swapColors} allReady={allReady}
-                myMember={myMember}
+                myMember={myMember} mode={mode} caps={caps}
+                onSetTeam={setTeam}
               />
             )}
           </div>
@@ -291,22 +332,29 @@ function ChessLobbyPage() {
 
 function WaitingRoom({
   players, spectators, profileById, lobby, isHost, me,
-  onKick, onTransferHost, onToggleReady, onStart, onSwapColors, allReady, myMember,
+  onKick, onTransferHost, onToggleReady, onStart, onSwapColors, allReady, mode, caps, onSetTeam,
 }: {
   members: Member[]; players: Member[]; spectators: Member[];
   profileById: Map<string, Profile>; lobby: Lobby; isHost: boolean; me: string;
   onKick: (id: string) => void; onTransferHost: (uid: string) => void; onToggleReady: () => void;
   onStart: () => void; onSwapColors: () => void; allReady: boolean; myMember?: Member;
+  mode: ChessMode; caps: { white: number; black: number };
+  onSetTeam: (memberId: string, team: "white" | "black") => void;
 }) {
+  const whiteTeam = players.filter((p) => p.team === "white");
+  const blackTeam = players.filter((p) => p.team === "black");
   return (
     <div className="glass rounded-3xl border border-border/60 p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-1">
         <div className="font-semibold">Waiting room</div>
         {isHost && (
           <button onClick={onSwapColors} className="inline-flex items-center gap-1.5 text-xs rounded-full px-3 py-1.5 bg-accent hover:bg-accent/70">
             <Shuffle className="h-3 w-3" /> Swap colors
           </button>
         )}
+      </div>
+      <div className="mb-4 text-xs text-muted-foreground">
+        {MODE_LABEL[mode]} · White {whiteTeam.length}/{caps.white} · Black {blackTeam.length}/{caps.black}
       </div>
 
       <div className="space-y-2">
@@ -332,6 +380,10 @@ function WaitingRoom({
                 </button>
               ) : isHost ? (
                 <div className="flex gap-1">
+                  <button
+                    onClick={() => onSetTeam(m.id, m.team === "white" ? "black" : "white")}
+                    title="Switch team"
+                    className="p-1.5 rounded-lg hover:bg-accent"><Shuffle className="h-3.5 w-3.5" /></button>
                   <button onClick={() => onTransferHost(m.user_id)} title="Transfer host"
                     className="p-1.5 rounded-lg hover:bg-accent"><ShieldCheck className="h-3.5 w-3.5" /></button>
                   <button onClick={() => onKick(m.id)} title="Kick"
@@ -368,10 +420,10 @@ function WaitingRoom({
       {isHost && (
         <button
           onClick={onStart}
-          disabled={players.length < 2}
+          disabled={players.length < MIN_PLAYERS[mode] || !whiteTeam.length || !blackTeam.length}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 disabled:opacity-50 transition"
         >
-          <Play className="h-4 w-4" /> Start game {allReady ? "" : players.length < 2 ? "(need 2 players)" : "(some players not ready)"}
+          <Play className="h-4 w-4" /> Start game {players.length < MIN_PLAYERS[mode] ? `(need ${MIN_PLAYERS[mode]} players)` : allReady ? "" : "(some players not ready)"}
         </button>
       )}
       {!isHost && (
@@ -382,18 +434,25 @@ function WaitingRoom({
 }
 
 function GameView({
-  game, lobby, userId, theme, onThemeChange, profileById,
+  game, lobby, userId, theme, onThemeChange, profileById, players, mode,
 }: {
   game: Game; lobby: Lobby; userId: string; theme: BoardTheme;
   onThemeChange: (t: BoardTheme) => void; profileById: Map<string, Profile>;
+  players: Member[]; mode: ChessMode;
 }) {
-  const isWhite = game.white_id === userId;
-  const isBlack = game.black_id === userId;
-  const isPlayer = isWhite || isBlack;
+  const whiteTeam = players.filter((p) => p.team === "white");
+  const blackTeam = players.filter((p) => p.team === "black");
+  const myTeam: "white" | "black" | null =
+    whiteTeam.some((p) => p.user_id === userId) ? "white"
+    : blackTeam.some((p) => p.user_id === userId) ? "black"
+    : game.white_id === userId ? "white"
+    : game.black_id === userId ? "black"
+    : null;
+  const isWhite = myTeam === "white";
+  const isBlack = myTeam === "black";
+  const isPlayer = !!myTeam;
   const orientation: "white" | "black" = isBlack ? "black" : "white";
   const chess = useMemo(() => { const c = new Chess(); try { c.load(game.fen); } catch { /*noop*/ } return c; }, [game.fen]);
-  const myTurn = isPlayer && chess.turn() === (isWhite ? "w" : "b");
-  const disabled = !isPlayer || !myTurn || game.status !== "active";
 
   const [lastMove, setLastMove] = useState<{ from: any; to: any } | null>(null);
 
@@ -402,6 +461,14 @@ function GameView({
     if (game.pgn) { try { c.loadPgn(game.pgn); } catch { /*noop*/ } }
     return c.history({ verbose: true }) as Array<{ san: string; color: "w" | "b"; captured?: string; piece: string; from: any; to: any }>;
   }, [game.pgn]);
+
+  const turnColor = chess.turn();
+  const movesByTurnColor = history.filter((h) => h.color === turnColor).length;
+  const teamToMove = turnColor === "w" ? whiteTeam : blackTeam;
+  const moverId = activeMoverId(teamToMove, movesByTurnColor) ?? (turnColor === "w" ? game.white_id : game.black_id);
+  const myTurn = isPlayer && turnColor === (isWhite ? "w" : "b") && (teamToMove.length <= 1 || moverId === userId);
+  const disabled = !myTurn || game.status !== "active";
+  const moverName = profileById.get(moverId ?? "")?.display_name ?? (turnColor === "w" ? "White" : "Black");
 
   useEffect(() => {
     if (history.length > 0) {
@@ -465,6 +532,13 @@ function GameView({
         onMove={handleMove}
         lastMove={lastMove}
       />
+
+      {mode !== "1v1" && game.status === "active" && (
+        <div className="mt-3 rounded-2xl border border-border/60 bg-background/40 px-3 py-2 text-xs text-center">
+          {MODE_LABEL[mode]} — <span className="font-semibold">{moverName}</span> to move
+          {myTurn ? " (that's you)" : isPlayer && turnColor === (isWhite ? "w" : "b") ? " — your teammate's turn" : ""}
+        </div>
+      )}
 
       <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
         <PlayerBar name={orientation === "white" ? whiteName : blackName} color={orientation === "white" ? "w" : "b"} captured={orientation === "white" ? capturedByWhite : capturedByBlack} isTurn={chess.turn() === (orientation === "white" ? "w" : "b")} />
