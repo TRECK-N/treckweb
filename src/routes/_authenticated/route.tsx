@@ -105,8 +105,8 @@ function AuthLayout() {
               <Menu className="h-5 w-5" />
             </button>
             <Link to="/dashboard" className="flex items-center gap-2 font-bold">
-              <img src={logoAsset.url} alt="TreckWeb" className="h-8 w-8 rounded-full object-cover ring-1 ring-primary/40" />
-              TreckWeb
+              <img src={logoAsset.url} alt="WebuWeb" className="h-8 w-8 rounded-full object-cover ring-1 ring-primary/40" />
+              WebuWeb
             </Link>
             <div className="w-9" />
           </header>
@@ -131,8 +131,8 @@ function SidebarInner({
   return (
     <div className="flex flex-col h-full p-4">
       <Link to="/dashboard" className="flex items-center gap-2.5 font-bold text-lg px-2 py-2">
-        <img src={logoAsset.url} alt="TreckWeb" className="h-9 w-9 rounded-full object-cover ring-1 ring-primary/40 shadow-[var(--shadow-glow)]" />
-        TreckWeb
+        <img src={logoAsset.url} alt="WebuWeb" className="h-9 w-9 rounded-full object-cover ring-1 ring-primary/40 shadow-[var(--shadow-glow)]" />
+        WebuWeb
       </Link>
 
       <nav className="mt-6 flex flex-col gap-1">
@@ -156,7 +156,10 @@ function SidebarInner({
                 />
               )}
               <item.icon className="relative h-4 w-4" />
-              <span className="relative">{item.label}</span>
+              <span className="relative flex-1">{item.label}</span>
+              {"locked" in item && item.locked && (
+                <Lock className="relative h-3.5 w-3.5 text-muted-foreground" />
+              )}
             </Link>
           );
         })}
