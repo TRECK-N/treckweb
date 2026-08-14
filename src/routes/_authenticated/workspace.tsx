@@ -275,12 +275,33 @@ function Workspace() {
               <FolderPlus className="h-3.5 w-3.5" />New subfolder
             </button>
           )}
+          <div className="glass inline-flex gap-1 rounded-full border border-border/60 p-1">
+            <button onClick={() => setView("universe")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${view === "universe" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <Orbit className="h-3.5 w-3.5" /> Universe
+            </button>
+            <button onClick={() => setView("list")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <LayoutGrid className="h-3.5 w-3.5" /> Content
+            </button>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="pl-9 pr-3 py-2 rounded-xl border border-border bg-background/40 text-sm outline-none w-40 sm:w-64 focus:border-primary" />
           </div>
         </header>
 
+        {view === "universe" ? (
+          <div className="flex-1 min-h-0 p-4">
+            <WorkspaceUniverse
+              folders={folders}
+              activeFolder={activeFolder}
+              counts={counts}
+              onSelect={setActiveFolder}
+              onCreateFolder={createFolder}
+            />
+          </div>
+        ) : (
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           {!activeFolder ? (
             <div className="text-center text-muted-foreground py-16">Select or create a folder to get started.</div>
