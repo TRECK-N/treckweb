@@ -68,7 +68,7 @@ function QuizPage() {
   });
 
   const updateQuestion = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: { question?: string; options?: string[]; correct_index?: number; explanation?: string } }) => {
       await supabase.from("study_questions").update(patch).eq("id", id);
     },
     onSuccess: invalidate,
