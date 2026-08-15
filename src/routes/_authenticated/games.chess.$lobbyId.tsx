@@ -559,8 +559,10 @@ function GameView({
 
       {mode !== "1v1" && game.status === "active" && (
         <div className="mt-3 rounded-2xl border border-border/60 bg-background/40 px-3 py-2 text-xs text-center">
-          {MODE_LABEL[mode]} — <span className="font-semibold">{moverName}</span> to move
-          {myTurn ? " (that's you)" : isPlayer && turnColor === (isWhite ? "w" : "b") ? " — your teammate's turn" : ""}
+          {MODE_LABEL[mode]} — {myTurn
+            ? <><span className="font-semibold text-primary">Your turn</span> ({turnColor === "w" ? "Team White" : "Team Black"})</>
+            : <>Waiting for <span className="font-semibold">{moverName}</span> ({turnColor === "w" ? "Team White" : "Team Black"})…</>}
+
         </div>
       )}
 

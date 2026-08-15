@@ -1,15 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Globe, UserPlus } from "lucide-react";
+import { Compass, MessageCircle } from "lucide-react";
 
 const TABS = [
-  { id: "global", label: "Global", to: "/chat", icon: Globe },
-  { id: "friends", label: "Friends", to: "/messages", icon: UserPlus },
+  { id: "hub", label: "Discover", to: "/chat", icon: Compass },
+  { id: "messages", label: "Messages", to: "/messages", icon: MessageCircle },
 ] as const;
 
 export function ChatTabs() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const activeId = pathname.startsWith("/messages") ? "friends" : "global";
+  const activeId = pathname.startsWith("/messages") ? "messages" : "hub";
 
   return (
     <div className="border-b border-border/60 px-4 lg:px-6 pt-3 pb-0 glass">

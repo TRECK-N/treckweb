@@ -31,7 +31,7 @@ type Mode = "signin" | "signup" | "forgot";
 
 const HIGHLIGHTS = [
   "AI assistant with saved conversations",
-  "Private chat, friends and groups",
+  "Private chat, friends and requests",
   "Workspace, study sets and games",
 ];
 
