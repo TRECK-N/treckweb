@@ -391,10 +391,16 @@ function WaitingRoom({
                 <div className="text-xs text-muted-foreground capitalize">{m.team ?? "team"} · {m.is_ready ? "Ready" : "Not ready"}</div>
               </div>
               {m.user_id === me ? (
-                <button onClick={onToggleReady}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs ${m.is_ready ? "bg-emerald-500/15 text-emerald-500" : "bg-accent hover:bg-accent/70"}`}>
-                  <Check className="h-3 w-3" /> {m.is_ready ? "Ready" : "Ready up"}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => onSetTeam(m.id, m.team === "white" ? "black" : "white")}
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs bg-accent hover:bg-accent/70">
+                    <Shuffle className="h-3 w-3" /> Switch side
+                  </button>
+                  <button onClick={onToggleReady}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs ${m.is_ready ? "bg-emerald-500/15 text-emerald-500" : "bg-accent hover:bg-accent/70"}`}>
+                    <Check className="h-3 w-3" /> {m.is_ready ? "Ready" : "Ready up"}
+                  </button>
+                </div>
               ) : isHost ? (
                 <div className="flex gap-1">
                   <button
