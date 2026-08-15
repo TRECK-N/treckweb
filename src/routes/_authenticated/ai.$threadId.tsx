@@ -188,10 +188,7 @@ function AiThread() {
           <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
             {messages.length === 0 && (
               <div className="text-center py-16">
-                <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary-glow grid place-items-center text-primary-foreground shadow-[var(--shadow-glow)]">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <h2 className="mt-4 text-2xl font-bold">How can I help today?</h2>
+                <h2 className="text-2xl font-bold">How can I help today?</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Ask anything — homework, explanations, code, ideas.
                   {isPro ? " Attach photos, PDFs, or snap a picture." : " Upgrade to PRO for photo & file analysis."}
