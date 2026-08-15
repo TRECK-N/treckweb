@@ -236,7 +236,13 @@ function ChessLobbyPage() {
   };
 
   const setTeam = async (memberId: string, team: "white" | "black") => {
-    await (supabase as any).from("chess_lobby_members").update({ team }).eq("id", memberId);
+    const target = members.find((m) => m.id === memberId);
+    if (!target || target.team === team) return;
+    const count = players.filter((p) => p.team === team && p.id !== memberId).length;
+    if (count >= caps[team]) { toast.error(`${team === "white" ? "White" : "Black"} is full (${caps[team]})`); return; }
+    const { error } = await (supabase as any).from("chess_lobby_members")
+      .update({ team, is_ready: false }).eq("id", memberId);
+    if (error) toast.error(error.message);
   };
 
   const swapColors = async () => {
