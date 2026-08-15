@@ -326,7 +326,7 @@ function ChessLobbyPage() {
                 onKick={kick} onTransferHost={transferHost} onToggleReady={toggleReady}
                 onStart={startGame} onSwapColors={swapColors} allReady={allReady}
                 myMember={myMember} mode={mode} caps={caps}
-                onSetTeam={setTeam}
+                onSetTeam={setTeam} canStart={canStart} teamsBalanced={teamsBalanced}
               />
             )}
           </div>
