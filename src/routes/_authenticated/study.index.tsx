@@ -411,16 +411,16 @@ function NotesTab({ userId }: { userId: string }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((n) => (
-            <Link key={n.id} to="/workspace" className="glass rounded-2xl p-5 transition hover:-translate-y-0.5">
-              <div className="flex items-center gap-2">
-                <StickyNote className="h-4 w-4 text-amber-400" />
-                <h3 className="font-semibold truncate">{n.title}</h3>
-              </div>
-              <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{n.content || "Empty note"}</p>
-            </Link>
+            <NoteCard
+              key={n.id}
+              userId={userId}
+              note={n as { id: string; title: string; content: string | null }}
+              onChanged={() => qc.invalidateQueries({ queryKey: ["study-notes", userId] })}
+            />
           ))}
         </div>
       )}
+
     </div>
   );
 }
