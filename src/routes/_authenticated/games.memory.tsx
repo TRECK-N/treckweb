@@ -93,7 +93,7 @@ function MemoryGame() {
         setTimeout(() => {
           setDeck((d) => d.map((c2, i) => (i === a || i === b ? { ...c2, flipped: false } : c2)));
           setPicked([]);
-        }, 850);
+        }, CONFIG[difficulty].peek);
       }
     }
   };
@@ -149,7 +149,7 @@ function MemoryGame() {
           </button>
         </div>
 
-        <div className="grid gap-2 sm:gap-3 mx-auto" style={{ gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, maxWidth: cols === 6 ? 640 : 480 }}>
+        <div className="grid gap-2 sm:gap-3 mx-auto" style={{ gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, maxWidth: CONFIG[difficulty].maxWidth }}>
           {deck.map((c, i) => (
             <button
               key={c.id}
