@@ -343,6 +343,7 @@ function ChessLobbyPage() {
 function WaitingRoom({
   players, spectators, profileById, lobby, isHost, me,
   onKick, onTransferHost, onToggleReady, onStart, onSwapColors, allReady, mode, caps, onSetTeam,
+  canStart, teamsBalanced,
 }: {
   members: Member[]; players: Member[]; spectators: Member[];
   profileById: Map<string, Profile>; lobby: Lobby; isHost: boolean; me: string;
@@ -350,9 +351,15 @@ function WaitingRoom({
   onStart: () => void; onSwapColors: () => void; allReady: boolean; myMember?: Member;
   mode: ChessMode; caps: { white: number; black: number };
   onSetTeam: (memberId: string, team: "white" | "black") => void;
+  canStart: boolean; teamsBalanced: boolean;
 }) {
   const whiteTeam = players.filter((p) => p.team === "white");
   const blackTeam = players.filter((p) => p.team === "black");
+  const myRow = players.find((p) => p.user_id === me);
+  const startHint = players.length < MIN_PLAYERS[mode]
+    ? `Need ${MIN_PLAYERS[mode]} players`
+    : !teamsBalanced ? `Teams must be ${caps.white} vs ${caps.black}`
+    : !allReady ? "Some players are not ready" : "";
   return (
     <div className="glass rounded-3xl border border-border/60 p-5">
       <div className="flex items-center justify-between mb-1">
