@@ -1,39 +1,58 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  FolderPlus, Folder, FolderOpen, Plus, Pin, Trash2, Search, Upload, File as FileIcon, Pencil,
-  ChevronRight, ChevronDown, Home, ArrowRightLeft, Orbit, LayoutGrid,
+  FolderPlus, Plus, Trash2, Search, Upload, Pencil, ChevronRight, Home, X,
+  Download, ArrowRightLeft, Pin, ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { WorkspaceUniverse, type UniverseCounts } from "@/components/workspace-universe";
+import { WorkspaceUniverse, type UniverseCounts, type UniverseItem } from "@/components/workspace-universe";
 
 export const Route = createFileRoute("/_authenticated/workspace")({
+  head: () => ({
+    meta: [
+      { title: "Workspace — WebuWeb" },
+      { name: "description", content: "Explore your folders, notes, files and study sets in an immersive workspace universe." },
+      { property: "og:title", content: "Workspace — WebuWeb" },
+      { property: "og:description", content: "Explore your folders, notes, files and study sets in an immersive workspace universe." },
+    ],
+  }),
   component: Workspace,
 });
 
 const COLORS = ["violet", "sky", "emerald", "amber", "rose", "cyan"];
 
 interface FolderRow {
-  id: string;
-  user_id: string;
-  name: string;
-  color: string | null;
-  icon: string | null;
-  parent_id: string | null;
-  created_at: string;
-  updated_at: string;
+  id: string; user_id: string; name: string; color: string | null;
+  icon: string | null; parent_id: string | null; created_at: string; updated_at: string;
 }
+
+type Selected =
+  | { kind: "note"; id: string }
+  | { kind: "file"; id: string }
+  | { kind: "deck"; id: string }
+  | { kind: "quiz"; id: string }
+  | null;
 
 function Workspace() {
   const { user } = Route.useRouteContext();
   const qc = useQueryClient();
-  const [activeFolder, setActiveFolder] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
+  const [openPath, setOpenPath] = useState<string[]>([]);
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"universe" | "list">("universe");
+  const [selected, setSelected] = useState<Selected>(null);
+
+  const currentFolder = openPath.length ? openPath[openPath.length - 1] : null;
+
+  const { data: folders = [] } = useQuery({
+    queryKey: ["folders", user.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("folders").select("*").eq("user_id", user.id).order("created_at");
+      return (data ?? []) as FolderRow[];
+    },
+  });
 
   const { data: counts = new Map<string, UniverseCounts>() } = useQuery({
     queryKey: ["workspace-counts", user.id],
@@ -55,349 +74,344 @@ function Workspace() {
     },
   });
 
-  const { data: folders = [] } = useQuery({
-    queryKey: ["folders", user.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("folders")
-        .select("*").eq("user_id", user.id).order("created_at");
-      return (data ?? []) as FolderRow[];
-    },
-  });
-
-  // Tree structure
-  const childrenMap = useMemo(() => {
-    const m = new Map<string | null, FolderRow[]>();
-    for (const f of folders) {
-      const k = f.parent_id ?? null;
-      if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(f);
-    }
-    return m;
-  }, [folders]);
-
-  const rootFolders = childrenMap.get(null) ?? [];
-
-  useEffect(() => {
-    if (!activeFolder && rootFolders[0]) setActiveFolder(rootFolders[0].id);
-  }, [rootFolders, activeFolder]);
-
   const { data: notes = [] } = useQuery({
-    queryKey: ["notes", user.id, activeFolder],
+    queryKey: ["notes", user.id, currentFolder],
+    enabled: !!currentFolder,
     queryFn: async () => {
-      if (!activeFolder) return [];
-      const { data } = await supabase.from("notes")
-        .select("*").eq("user_id", user.id).eq("folder_id", activeFolder)
-        .order("pinned", { ascending: false }).order("updated_at", { ascending: false });
+      const { data } = await supabase.from("notes").select("*").eq("user_id", user.id)
+        .eq("folder_id", currentFolder!).order("pinned", { ascending: false }).order("updated_at", { ascending: false });
       return data ?? [];
     },
-    enabled: !!activeFolder,
   });
 
   const { data: files = [] } = useQuery({
-    queryKey: ["files", user.id, activeFolder],
+    queryKey: ["files", user.id, currentFolder],
+    enabled: !!currentFolder,
     queryFn: async () => {
-      if (!activeFolder) return [];
-      const { data } = await supabase.from("workspace_files")
-        .select("*").eq("user_id", user.id).eq("folder_id", activeFolder)
-        .order("pinned", { ascending: false }).order("created_at", { ascending: false });
+      const { data } = await supabase.from("workspace_files").select("*").eq("user_id", user.id)
+        .eq("folder_id", currentFolder!).order("created_at", { ascending: false });
       return data ?? [];
     },
-    enabled: !!activeFolder,
   });
 
+  const { data: decks = [] } = useQuery({
+    queryKey: ["ws-decks", user.id, currentFolder],
+    enabled: !!currentFolder,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("study_decks").select("id,title")
+        .eq("user_id", user.id).eq("folder_id", currentFolder!);
+      return (data ?? []) as Array<{ id: string; title: string }>;
+    },
+  });
+
+  const { data: quizzes = [] } = useQuery({
+    queryKey: ["ws-quizzes", user.id, currentFolder],
+    enabled: !!currentFolder,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("study_quizzes").select("id,title")
+        .eq("user_id", user.id).eq("folder_id", currentFolder!);
+      return (data ?? []) as Array<{ id: string; title: string }>;
+    },
+  });
+
+  const refreshAll = () => {
+    qc.invalidateQueries({ queryKey: ["folders", user.id] });
+    qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
+    qc.invalidateQueries({ queryKey: ["notes", user.id, currentFolder] });
+    qc.invalidateQueries({ queryKey: ["files", user.id, currentFolder] });
+    qc.invalidateQueries({ queryKey: ["ws-decks", user.id, currentFolder] });
+    qc.invalidateQueries({ queryKey: ["ws-quizzes", user.id, currentFolder] });
+  };
+
+  const q = search.trim().toLowerCase();
+  const items: UniverseItem[] = useMemo(() => {
+    const list: UniverseItem[] = [
+      ...notes.map((n) => ({ id: n.id, name: n.title || "Untitled note", kind: "note" as const })),
+      ...files.map((f) => ({ id: f.id, name: f.name, kind: "file" as const, mime: f.mime_type })),
+      ...decks.map((d) => ({ id: d.id, name: d.title, kind: "deck" as const })),
+      ...quizzes.map((z) => ({ id: z.id, name: z.title, kind: "quiz" as const })),
+    ];
+    return q ? list.filter((i) => i.name.toLowerCase().includes(q)) : list;
+  }, [notes, files, decks, quizzes, q]);
+
+  /* ---------- folder actions ---------- */
   const createFolder = async (parentId: string | null) => {
     const name = prompt(parentId ? "Subfolder name?" : "Folder name?");
     if (!name?.trim()) return;
     const color = COLORS[folders.length % COLORS.length];
-    const { data, error } = await supabase.from("folders")
-      .insert({ user_id: user.id, name, color, parent_id: parentId })
-      .select().single();
+    const { error } = await supabase.from("folders")
+      .insert({ user_id: user.id, name: name.trim(), color, parent_id: parentId });
     if (error) return toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["folders", user.id] });
-    if (parentId) setExpanded((s) => new Set([...s, parentId]));
-    if (data) setActiveFolder(data.id);
+    refreshAll();
   };
 
-  const renameFolder = async (id: string, current: string) => {
-    const name = prompt("Rename folder", current);
-    if (!name?.trim() || name === current) return;
-    await supabase.from("folders").update({ name }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["folders", user.id] });
+  const renameFolder = async () => {
+    if (!currentFolder) return;
+    const cur = folders.find((f) => f.id === currentFolder);
+    const name = prompt("Rename folder", cur?.name ?? "");
+    if (!name?.trim() || name === cur?.name) return;
+    await supabase.from("folders").update({ name: name.trim() }).eq("id", currentFolder);
+    refreshAll();
   };
 
-  const deleteFolder = async (id: string) => {
-    if (!confirm("Delete folder and everything inside (including subfolders)?")) return;
-    await supabase.from("folders").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["folders", user.id] });
-    if (activeFolder === id) setActiveFolder(null);
+  const deleteFolder = async () => {
+    if (!currentFolder) return;
+    if (!confirm("Delete this folder and everything inside it?")) return;
+    await supabase.from("folders").delete().eq("id", currentFolder);
+    setOpenPath((p) => p.slice(0, -1));
+    refreshAll();
   };
 
-  const moveItem = async (kind: "note" | "file", id: string) => {
-    const options = folders.map((f) => `${f.id}: ${folderPath(f, folders)}`).join("\n");
-    const target = prompt(`Move to folder — paste ID:\n${options}`);
-    if (!target?.trim()) return;
-    const clean = target.split(":")[0].trim();
-    const exists = folders.some((f) => f.id === clean);
-    if (!exists) return toast.error("Folder not found");
-    const table = kind === "note" ? "notes" : "workspace_files";
-    await supabase.from(table).update({ folder_id: clean }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
-    toast.success("Moved");
-  };
-
+  /* ---------- item actions ---------- */
   const createNote = async () => {
-    if (!activeFolder) return;
+    if (!currentFolder) return;
     const { data } = await supabase.from("notes")
-      .insert({ user_id: user.id, folder_id: activeFolder, title: "Untitled note", content: "" }).select().single();
-    if (data) qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
-  };
-
-  const updateNote = async (id: string, patch: { title?: string; content?: string; pinned?: boolean }) => {
-    await supabase.from("notes").update(patch).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
-  };
-
-  const deleteNote = async (id: string) => {
-    if (!confirm("Delete note?")) return;
-    await supabase.from("notes").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notes", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
+      .insert({ user_id: user.id, folder_id: currentFolder, title: "Untitled note", content: "" }).select().single();
+    refreshAll();
+    if (data) setSelected({ kind: "note", id: data.id });
   };
 
   const uploadFile = async (file: File) => {
-    if (!activeFolder) return;
-    const path = `${user.id}/${activeFolder}/${Date.now()}-${file.name}`;
+    if (!currentFolder) return;
+    const path = `${user.id}/${currentFolder}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("workspace").upload(path, file);
     if (error) return toast.error(error.message);
     await supabase.from("workspace_files").insert({
-      user_id: user.id, folder_id: activeFolder,
+      user_id: user.id, folder_id: currentFolder,
       name: file.name, storage_path: path, mime_type: file.type, size: file.size,
     });
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
+    refreshAll();
     toast.success("Uploaded");
   };
 
-  const downloadFile = async (path: string, name: string) => {
-    const { data } = await supabase.storage.from("workspace").createSignedUrl(path, 60);
-    if (data?.signedUrl) {
-      const a = document.createElement("a");
-      a.href = data.signedUrl; a.download = name; a.click();
-    }
+  const moveTo = async (kind: "note" | "file" | "deck" | "quiz", id: string) => {
+    const options = folders.map((f) => `${f.id}: ${folderPath(f, folders)}`).join("\n");
+    const target = prompt(`Move to folder — paste the folder id:\n${options}`);
+    const clean = target?.split(":")[0].trim();
+    if (!clean) return;
+    if (!folders.some((f) => f.id === clean)) return toast.error("Folder not found");
+    const table = kind === "note" ? "notes" : kind === "file" ? "workspace_files" : kind === "deck" ? "study_decks" : "study_quizzes";
+    await (supabase as any).from(table).update({ folder_id: clean }).eq("id", id);
+    setSelected(null);
+    refreshAll();
+    toast.success("Moved");
   };
 
-  const deleteFile = async (id: string, path: string) => {
-    if (!confirm("Delete file?")) return;
-    await supabase.storage.from("workspace").remove([path]);
-    await supabase.from("workspace_files").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["files", user.id, activeFolder] }); qc.invalidateQueries({ queryKey: ["workspace-counts", user.id] });
-  };
+  const breadcrumb = openPath.map((id) => folders.find((f) => f.id === id)).filter(Boolean) as FolderRow[];
 
-  const filteredNotes = notes.filter((n) => n.title.toLowerCase().includes(search.toLowerCase()) || (n.content ?? "").toLowerCase().includes(search.toLowerCase()));
-  const filteredFiles = files.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()));
-  const activeMeta = folders.find((f) => f.id === activeFolder);
-  const breadcrumb = activeMeta ? folderAncestors(activeMeta, folders) : [];
-
-  const toggleExpand = (id: string) => setExpanded((s) => {
-    const n = new Set(s);
-    if (n.has(id)) n.delete(id); else n.add(id);
-    return n;
-  });
-
-  const renderTree = (parentId: string | null, depth: number): React.ReactNode => {
-    const items = childrenMap.get(parentId) ?? [];
-    return items.map((f) => {
-      const kids = childrenMap.get(f.id) ?? [];
-      const isOpen = expanded.has(f.id);
-      const isActive = activeFolder === f.id;
-      return (
-        <div key={f.id}>
-          <div className={`group flex items-center rounded-lg transition ${isActive ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"}`}
-            style={{ paddingLeft: depth * 12 }}>
-            <button onClick={() => kids.length && toggleExpand(f.id)}
-              className="h-6 w-6 grid place-items-center text-muted-foreground shrink-0">
-              {kids.length ? (isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />) : <span className="h-3.5 w-3.5" />}
+  return (
+    <div className="flex h-[calc(100vh-56px)] flex-col lg:h-screen">
+      <header className="flex flex-wrap items-center gap-3 border-b border-border/60 px-5 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+            <button onClick={() => setOpenPath([])} className="inline-flex items-center gap-1 hover:text-foreground">
+              <Home className="h-3 w-3" /> Universe
             </button>
-            <button onClick={() => setActiveFolder(f.id)} className="flex-1 flex items-center gap-2 py-1.5 text-sm min-w-0">
-              {isActive ? <FolderOpen className="h-4 w-4 text-primary shrink-0" /> : <Folder className="h-4 w-4 text-primary shrink-0" />}
-              <span className="truncate">{f.name}</span>
-            </button>
-            <div className="flex opacity-0 group-hover:opacity-100 transition">
-              <button onClick={() => createFolder(f.id)} className="p-1 hover:text-primary" aria-label="Add subfolder" title="Add subfolder"><Plus className="h-3 w-3" /></button>
-              <button onClick={() => renameFolder(f.id, f.name)} className="p-1 hover:text-primary" aria-label="Rename"><Pencil className="h-3 w-3" /></button>
-              <button onClick={() => deleteFolder(f.id)} className="p-1 hover:text-destructive" aria-label="Delete"><Trash2 className="h-3 w-3" /></button>
-            </div>
+            {breadcrumb.map((b, i) => (
+              <span key={b.id} className="inline-flex items-center gap-1">
+                <ChevronRight className="h-3 w-3" />
+                <button onClick={() => setOpenPath(openPath.slice(0, i + 1))}
+                  className={i === breadcrumb.length - 1 ? "font-medium text-foreground" : "hover:text-foreground"}>
+                  {b.name}
+                </button>
+              </span>
+            ))}
           </div>
-          {isOpen && kids.length > 0 && renderTree(f.id, depth + 1)}
+          <h1 className="mt-0.5 truncate text-lg font-bold">
+            {breadcrumb.length ? breadcrumb[breadcrumb.length - 1].name : "Workspace universe"}
+          </h1>
         </div>
-      );
-    });
+
+        {currentFolder && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={createNote} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90">
+              <Plus className="h-3.5 w-3.5" /> Note
+            </button>
+            <label className="glass inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs hover:bg-accent">
+              <Upload className="h-3.5 w-3.5" /> Upload
+              <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
+            </label>
+            <button onClick={() => createFolder(currentFolder)} className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs hover:bg-accent">
+              <FolderPlus className="h-3.5 w-3.5" /> Subfolder
+            </button>
+            <button onClick={renameFolder} className="glass grid h-8 w-8 place-items-center rounded-full hover:bg-accent" aria-label="Rename folder"><Pencil className="h-3.5 w-3.5" /></button>
+            <button onClick={deleteFolder} className="glass grid h-8 w-8 place-items-center rounded-full text-destructive hover:bg-destructive/10" aria-label="Delete folder"><Trash2 className="h-3.5 w-3.5" /></button>
+          </div>
+        )}
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter items…"
+            className="w-40 rounded-xl border border-border bg-background/40 py-2 pl-9 pr-3 text-sm outline-none focus:border-primary sm:w-56" />
+        </div>
+      </header>
+
+      <div className="relative min-h-0 flex-1">
+        <WorkspaceUniverse
+          folders={folders}
+          openPath={openPath}
+          counts={counts}
+          items={items}
+          onOpenFolder={(id) => { setSelected(null); setOpenPath((p) => (p.includes(id) ? p : [...p, id])); }}
+          onCollapse={() => { setSelected(null); setOpenPath((p) => p.slice(0, -1)); }}
+          onCreateFolder={createFolder}
+          onSelectItem={(it) => setSelected({ kind: it.kind, id: it.id } as Selected)}
+        />
+
+        <AnimatePresence>
+          {selected && (
+            <motion.aside
+              initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              className="glass absolute right-0 top-0 z-20 flex h-full w-full max-w-md flex-col border-l border-border/60"
+            >
+              <div className="flex items-center justify-between border-b border-border/60 p-4">
+                <div className="text-sm font-semibold capitalize">{selected.kind}</div>
+                <button onClick={() => setSelected(null)} className="rounded-lg p-1.5 hover:bg-accent" aria-label="Close"><X className="h-4 w-4" /></button>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                {selected.kind === "note" && (
+                  <NoteEditor
+                    note={notes.find((n) => n.id === selected.id)}
+                    onSaved={refreshAll}
+                    onDeleted={() => { setSelected(null); refreshAll(); }}
+                    onMove={() => moveTo("note", selected.id)}
+                  />
+                )}
+                {selected.kind === "file" && (
+                  <FilePanel
+                    file={files.find((f) => f.id === selected.id)}
+                    onChanged={refreshAll}
+                    onDeleted={() => { setSelected(null); refreshAll(); }}
+                    onMove={() => moveTo("file", selected.id)}
+                  />
+                )}
+                {(selected.kind === "deck" || selected.kind === "quiz") && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      This {selected.kind === "deck" ? "flashcard deck" : "quiz"} lives in this folder and stays available in Study.
+                    </p>
+                    <button
+                      onClick={() => navigate({
+                        to: selected.kind === "deck" ? "/study/deck/$deckId" : "/study/quiz/$quizId",
+                        params: selected.kind === "deck" ? { deckId: selected.id } : { quizId: selected.id },
+                      } as never)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                    >
+                      <ExternalLink className="h-4 w-4" /> Open in Study
+                    </button>
+                    <button onClick={() => moveTo(selected.kind as "deck" | "quiz", selected.id)}
+                      className="glass inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm hover:bg-accent">
+                      <ArrowRightLeft className="h-4 w-4" /> Move to another folder
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function NoteEditor({
+  note, onSaved, onDeleted, onMove,
+}: {
+  note?: { id: string; title: string; content: string | null; pinned: boolean };
+  onSaved: () => void; onDeleted: () => void; onMove: () => void;
+}) {
+  const [title, setTitle] = useState(note?.title ?? "");
+  const [content, setContent] = useState(note?.content ?? "");
+  const [saving, setSaving] = useState(false);
+  if (!note) return <p className="text-sm text-muted-foreground">Note not found.</p>;
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("notes").update({ title: title || "Untitled note", content }).eq("id", note.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Saved");
+    onSaved();
   };
 
   return (
-    <div className="flex h-[calc(100vh-56px)] lg:h-screen">
-      <aside className="hidden md:flex w-72 flex-col border-r border-border/60 bg-sidebar p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold">Workspace</h2>
-          <button onClick={() => createFolder(null)} className="p-1.5 rounded-lg hover:bg-accent" aria-label="New folder">
-            <FolderPlus className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="space-y-0.5 flex-1 overflow-y-auto">
-          {renderTree(null, 0)}
-          {folders.length === 0 && (
-            <button onClick={() => createFolder(null)} className="w-full text-left glass rounded-xl p-3 text-sm text-muted-foreground hover:text-foreground">
-              <FolderPlus className="h-4 w-4 inline mr-2" />Create your first folder
-            </button>
-          )}
-        </div>
-      </aside>
+    <div className="flex h-full flex-col gap-3">
+      <input value={title} onChange={(e) => setTitle(e.target.value)}
+        className="w-full rounded-xl border border-border bg-background/40 px-3 py-2 text-base font-semibold outline-none focus:border-primary" />
+      <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={16} placeholder="Write your notes…"
+        className="min-h-[16rem] flex-1 resize-none rounded-xl border border-border bg-background/40 px-3 py-2 text-sm outline-none focus:border-primary" />
+      <div className="flex flex-wrap gap-2">
+        <button onClick={save} disabled={saving}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
+          Save
+        </button>
+        <button onClick={async () => { await supabase.from("notes").update({ pinned: !note.pinned }).eq("id", note.id); onSaved(); }}
+          className="glass inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
+          <Pin className="h-4 w-4" /> {note.pinned ? "Unpin" : "Pin"}
+        </button>
+        <button onClick={onMove} className="glass inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
+          <ArrowRightLeft className="h-4 w-4" /> Move
+        </button>
+        <button
+          onClick={async () => { if (!confirm("Delete note?")) return; await supabase.from("notes").delete().eq("id", note.id); onDeleted(); }}
+          className="inline-flex items-center gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive hover:bg-destructive/20">
+          <Trash2 className="h-4 w-4" /> Delete
+        </button>
+      </div>
+    </div>
+  );
+}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="border-b border-border/60 px-6 py-4 flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-              <Home className="h-3 w-3" />
-              {breadcrumb.map((b, i) => (
-                <span key={b.id} className="inline-flex items-center gap-1">
-                  <ChevronRight className="h-3 w-3" />
-                  <button onClick={() => setActiveFolder(b.id)}
-                    className={i === breadcrumb.length - 1 ? "text-foreground font-medium" : "hover:text-foreground"}>
-                    {b.name}
-                  </button>
-                </span>
-              ))}
-            </div>
-            <h1 className="font-bold text-lg truncate mt-0.5">{activeMeta?.name ?? "Workspace"}</h1>
-          </div>
-          {activeFolder && (
-            <button onClick={() => createFolder(activeFolder)}
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs rounded-full glass px-3 py-1.5 hover:bg-accent">
-              <FolderPlus className="h-3.5 w-3.5" />New subfolder
-            </button>
-          )}
-          <div className="glass inline-flex gap-1 rounded-full border border-border/60 p-1">
-            <button onClick={() => setView("universe")}
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${view === "universe" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              <Orbit className="h-3.5 w-3.5" /> Universe
-            </button>
-            <button onClick={() => setView("list")}
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              <LayoutGrid className="h-3.5 w-3.5" /> Content
-            </button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="pl-9 pr-3 py-2 rounded-xl border border-border bg-background/40 text-sm outline-none w-40 sm:w-64 focus:border-primary" />
-          </div>
-        </header>
+function FilePanel({
+  file, onChanged, onDeleted, onMove,
+}: {
+  file?: { id: string; name: string; storage_path: string; mime_type: string | null; size: number | null };
+  onChanged: () => void; onDeleted: () => void; onMove: () => void;
+}) {
+  if (!file) return <p className="text-sm text-muted-foreground">File not found.</p>;
 
-        {view === "universe" ? (
-          <div className="flex-1 min-h-0 p-4">
-            <WorkspaceUniverse
-              folders={folders}
-              activeFolder={activeFolder}
-              counts={counts}
-              onSelect={setActiveFolder}
-              onCreateFolder={createFolder}
-            />
-          </div>
-        ) : (
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {!activeFolder ? (
-            <div className="text-center text-muted-foreground py-16">Select or create a folder to get started.</div>
-          ) : (
-            <>
-              {/* Subfolders */}
-              {(childrenMap.get(activeFolder)?.length ?? 0) > 0 && (
-                <section>
-                  <h2 className="font-semibold text-sm mb-3">Subfolders</h2>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {(childrenMap.get(activeFolder) ?? []).map((f) => (
-                      <button key={f.id} onClick={() => setActiveFolder(f.id)}
-                        className="glass rounded-2xl p-4 flex items-center gap-3 hover:shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition text-left">
-                        <div className="h-10 w-10 rounded-xl bg-primary/10 grid place-items-center text-primary shrink-0">
-                          <Folder className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium truncate">{f.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {(childrenMap.get(f.id)?.length ?? 0)} subfolder{(childrenMap.get(f.id)?.length ?? 0) === 1 ? "" : "s"}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              )}
+  const download = async () => {
+    const { data } = await supabase.storage.from("workspace").createSignedUrl(file.storage_path, 60);
+    if (!data?.signedUrl) return toast.error("Could not create a download link");
+    const a = document.createElement("a");
+    a.href = data.signedUrl; a.download = file.name; a.click();
+  };
 
-              <section>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-semibold text-sm">Notes</h2>
-                  <button onClick={createNote} className="inline-flex items-center gap-1.5 text-xs rounded-full bg-primary text-primary-foreground px-3 py-1.5 hover:opacity-90"><Plus className="h-3.5 w-3.5" />New note</button>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <AnimatePresence>
-                    {filteredNotes.map((n) => (
-                      <motion.div key={n.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                        className="glass rounded-2xl p-4 hover:shadow-[var(--shadow-glow)] transition group">
-                        <div className="flex items-start justify-between gap-2">
-                          <input
-                            defaultValue={n.title}
-                            onBlur={(e) => e.target.value !== n.title && updateNote(n.id, { title: e.target.value })}
-                            className="font-semibold bg-transparent outline-none flex-1 min-w-0"
-                          />
-                          <div className="flex opacity-0 group-hover:opacity-100 transition">
-                            <button onClick={() => updateNote(n.id, { pinned: !n.pinned })} className={`p-1 ${n.pinned ? "text-primary" : "text-muted-foreground hover:text-primary"}`}><Pin className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => moveItem("note", n.id)} className="p-1 text-muted-foreground hover:text-primary" aria-label="Move"><ArrowRightLeft className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => deleteNote(n.id)} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                          </div>
-                        </div>
-                        <textarea
-                          defaultValue={n.content ?? ""}
-                          onBlur={(e) => e.target.value !== (n.content ?? "") && updateNote(n.id, { content: e.target.value })}
-                          placeholder="Write something…"
-                          rows={5}
-                          className="mt-2 w-full bg-transparent resize-none outline-none text-sm text-muted-foreground"
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </section>
+  const rename = async () => {
+    const name = prompt("Rename file", file.name);
+    if (!name?.trim() || name === file.name) return;
+    await supabase.from("workspace_files").update({ name: name.trim() }).eq("id", file.id);
+    onChanged();
+  };
 
-              <section>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-semibold text-sm">Files</h2>
-                  <label className="inline-flex items-center gap-1.5 text-xs rounded-full glass px-3 py-1.5 cursor-pointer hover:bg-accent">
-                    <Upload className="h-3.5 w-3.5" />Upload
-                    <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
-                  </label>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredFiles.map((f) => (
-                    <div key={f.id} className="glass rounded-2xl p-4 flex items-center gap-3 group">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary-glow/20 grid place-items-center text-primary">
-                        <FileIcon className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <button onClick={() => downloadFile(f.storage_path, f.name)} className="block text-left text-sm font-medium truncate hover:text-primary">{f.name}</button>
-                        <div className="text-xs text-muted-foreground">{formatSize(f.size ?? 0)}</div>
-                      </div>
-                      <div className="flex opacity-0 group-hover:opacity-100 transition">
-                        <button onClick={() => moveItem("file", f.id)} className="p-1.5 text-muted-foreground hover:text-primary" aria-label="Move"><ArrowRightLeft className="h-4 w-4" /></button>
-                        <button onClick={() => deleteFile(f.id, f.storage_path)} className="p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                      </div>
-                    </div>
-                  ))}
-                  {filteredFiles.length === 0 && (
-                    <div className="col-span-full text-center text-sm text-muted-foreground py-8">No files yet. Upload PDFs, images, or docs.</div>
-                  )}
-                </div>
-              </section>
-            </>
-          )}
-        </div>
-        )}
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="truncate text-base font-semibold">{file.name}</div>
+        <div className="text-xs text-muted-foreground">{file.mime_type ?? "file"} · {formatSize(file.size ?? 0)}</div>
+      </div>
+      <div className="grid gap-2">
+        <button onClick={download} className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+          <Download className="h-4 w-4" /> Download
+        </button>
+        <button onClick={rename} className="glass inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm hover:bg-accent">
+          <Pencil className="h-4 w-4" /> Rename
+        </button>
+        <button onClick={onMove} className="glass inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm hover:bg-accent">
+          <ArrowRightLeft className="h-4 w-4" /> Move
+        </button>
+        <button
+          onClick={async () => {
+            if (!confirm("Delete file?")) return;
+            await supabase.storage.from("workspace").remove([file.storage_path]);
+            await supabase.from("workspace_files").delete().eq("id", file.id);
+            onDeleted();
+          }}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-destructive/10 px-4 py-2 text-sm text-destructive hover:bg-destructive/20">
+          <Trash2 className="h-4 w-4" /> Delete
+        </button>
       </div>
     </div>
   );
