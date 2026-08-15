@@ -63,13 +63,27 @@ function AuthPage() {
         navigate({ to: "/dashboard", replace: true });
       } else if (mode === "signup") {
         setSessionPersistence(stay);
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin, data: { full_name: name } },
+          options: { emailRedirectTo: window.location.origin, data: { full_name: name, display_name: name } },
         });
         if (error) throw error;
-        toast.success("Account created. Welcome to WebuWeb.");
+        if (data.session) {
+          toast.success("Account created. Welcome to WebuWeb.");
+          navigate({ to: "/dashboard", replace: true });
+        } else {
+          // No session returned (email confirmation) — sign in straight away so the
+          // account is usable immediately with the same email + password.
+          const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInError) {
+            toast.success("Account created — please confirm your email, then sign in.");
+            setMode("signin");
+          } else {
+            toast.success("Account created. Welcome to WebuWeb.");
+            navigate({ to: "/dashboard", replace: true });
+          }
+        }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,

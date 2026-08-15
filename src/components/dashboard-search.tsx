@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search as SearchIcon, X, Loader2, Users, FileText, FolderOpen, File, Crown, BookOpen } from "lucide-react";
+import { Search as SearchIcon, X, Loader2, FileText, FolderOpen, File, Crown, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialAvatar } from "@/components/social-avatar";
 
@@ -13,12 +13,11 @@ const PLATFORM_CONTENT: Array<{ id: string; title: string; desc: string; to: str
   { id: "study", title: "Study", desc: "Flashcards, notes and quizzes for every subject.", to: "/dashboard", keywords: "study flashcards quiz notes learning revision" },
   { id: "workspace", title: "Workspace", desc: "Your private folders, notes and files.", to: "/workspace", keywords: "workspace folders files notes documents upload storage" },
   { id: "games", title: "Games", desc: "ChessFriends, Snake and more.", to: "/games", keywords: "games chess snake play arcade" },
-  { id: "chat", title: "Chat", desc: "Friends, groups, requests and discovery.", to: "/chat", keywords: "chat messages friends groups requests dm" },
+  { id: "chat", title: "Chat", desc: "Friends, requests and discovery.", to: "/chat", keywords: "chat messages friends requests dm" },
   { id: "ai", title: "AI Assistant", desc: "Ask questions, get explanations and code help.", to: "/ai", keywords: "ai assistant chatbot help explain" },
   { id: "settings", title: "Settings", desc: "Profile, language, appearance and account.", to: "/settings", keywords: "settings profile language theme account password" },
 ];
 
-type Group = { id: string; name: string; description: string | null; avatar_url: string | null };
 type Profile = { id: string; display_name: string | null; username: string | null; avatar_url: string | null; bio: string | null };
 
 export function DashboardSearch({ userId }: { userId: string }) {
@@ -45,11 +44,9 @@ export function DashboardSearch({ userId }: { userId: string }) {
     enabled: query.length >= 2,
     queryFn: async () => {
       const like = `%${query}%`;
-      const [usersRes, groupsRes, foldersRes, notesRes, filesRes] = await Promise.all([
+      const [usersRes, foldersRes, notesRes, filesRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, username, avatar_url, bio")
           .or(`display_name.ilike.${like},username.ilike.${like},bio.ilike.${like}`).neq("id", userId).limit(6),
-        supabase.from("groups").select("id, name, description, avatar_url")
-          .eq("is_public", true).or(`name.ilike.${like},description.ilike.${like}`).limit(6),
         supabase.from("folders").select("id, name").eq("user_id", userId).ilike("name", like).limit(6),
         supabase.from("notes").select("id, title").eq("user_id", userId)
           .or(`title.ilike.${like},content.ilike.${like}`).limit(6),
@@ -57,7 +54,6 @@ export function DashboardSearch({ userId }: { userId: string }) {
       ]);
       return {
         users: (usersRes.data ?? []) as Profile[],
-        groups: (groupsRes.data ?? []) as Group[],
         folders: foldersRes.data ?? [],
         notes: notesRes.data ?? [],
         files: filesRes.data ?? [],
@@ -74,7 +70,7 @@ export function DashboardSearch({ userId }: { userId: string }) {
   }, [query]);
 
   const total =
-    (data?.users.length ?? 0) + (data?.groups.length ?? 0) + (data?.folders.length ?? 0) +
+    (data?.users.length ?? 0) + (data?.folders.length ?? 0) +
     (data?.notes.length ?? 0) + (data?.files.length ?? 0) + platform.length;
 
   const showPanel = open && query.length >= 2;
@@ -87,7 +83,7 @@ export function DashboardSearch({ userId }: { userId: string }) {
           value={input}
           onChange={(e) => { setInput(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder="Search people, groups, your workspace…"
+          placeholder="Search people, your workspace…"
           aria-label="Search WebuWeb"
           className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground/70"
         />
@@ -119,13 +115,6 @@ export function DashboardSearch({ userId }: { userId: string }) {
               ))}
             </Section>
 
-            <Section title="Groups" show={!!data?.groups.length}>
-              {data?.groups.map((g) => (
-                <Row key={g.id} to="/chat" onNavigate={() => setOpen(false)}
-                  leading={<Icon><Users className="h-4 w-4" /></Icon>}
-                  title={g.name} subtitle={g.description || "Public group"} />
-              ))}
-            </Section>
 
             <Section title="Folders" show={!!data?.folders.length}>
               {data?.folders.map((f) => (

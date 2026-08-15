@@ -27,7 +27,6 @@ import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
-import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
 import { Route as AuthenticatedGamesMinesweeperRouteImport } from './routes/_authenticated/games.minesweeper'
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
@@ -129,12 +128,6 @@ const AuthenticatedMessagesUserIdRoute =
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
-const AuthenticatedGroupsGroupIdRoute =
-  AuthenticatedGroupsGroupIdRouteImport.update({
-    id: '/groups/$groupId',
-    path: '/groups/$groupId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
   id: '/games/snake',
   path: '/games/snake',
@@ -205,7 +198,6 @@ export interface FileRoutesByFullPath {
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
-  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/games/': typeof AuthenticatedGamesIndexRoute
@@ -233,7 +225,6 @@ export interface FileRoutesByTo {
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
-  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/games': typeof AuthenticatedGamesIndexRoute
@@ -264,7 +255,6 @@ export interface FileRoutesById {
   '/_authenticated/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/_authenticated/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
-  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
@@ -295,7 +285,6 @@ export interface FileRouteTypes {
     | '/games/memory'
     | '/games/minesweeper'
     | '/games/snake'
-    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai/'
     | '/games/'
@@ -323,7 +312,6 @@ export interface FileRouteTypes {
     | '/games/memory'
     | '/games/minesweeper'
     | '/games/snake'
-    | '/groups/$groupId'
     | '/messages/$userId'
     | '/ai'
     | '/games'
@@ -353,7 +341,6 @@ export interface FileRouteTypes {
     | '/_authenticated/games/memory'
     | '/_authenticated/games/minesweeper'
     | '/_authenticated/games/snake'
-    | '/_authenticated/groups/$groupId'
     | '/_authenticated/messages/$userId'
     | '/_authenticated/ai/'
     | '/_authenticated/games/'
@@ -502,13 +489,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
-    '/_authenticated/groups/$groupId': {
-      id: '/_authenticated/groups/$groupId'
-      path: '/groups/$groupId'
-      fullPath: '/groups/$groupId'
-      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/games/snake': {
       id: '/_authenticated/games/snake'
       path: '/games/snake'
@@ -603,7 +583,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGamesMemoryRoute: typeof AuthenticatedGamesMemoryRoute
   AuthenticatedGamesMinesweeperRoute: typeof AuthenticatedGamesMinesweeperRoute
   AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
-  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
   AuthenticatedStudyIndexRoute: typeof AuthenticatedStudyIndexRoute
@@ -626,7 +605,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGamesMemoryRoute: AuthenticatedGamesMemoryRoute,
   AuthenticatedGamesMinesweeperRoute: AuthenticatedGamesMinesweeperRoute,
   AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
-  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
   AuthenticatedStudyIndexRoute: AuthenticatedStudyIndexRoute,

@@ -180,7 +180,10 @@ function ChessLobbyPage() {
   const caps = TEAM_CAPS[mode];
   const whiteTeam = players.filter((p) => p.team === "white");
   const blackTeam = players.filter((p) => p.team === "black");
-  const allReady = players.length >= 2 && players.every((p) => p.is_ready || p.user_id === lobby.host_id);
+  const teamsBalanced = whiteTeam.length === caps.white && blackTeam.length === caps.black;
+  const allReady = players.length >= MIN_PLAYERS[mode]
+    && players.every((p) => p.is_ready || p.user_id === lobby.host_id);
+  const canStart = teamsBalanced && allReady;
 
   const copyCode = () => {
     if (!lobby.code) return;
@@ -218,8 +221,9 @@ function ChessLobbyPage() {
   };
 
   const startGame = async () => {
-    if (!whiteTeam.length || !blackTeam.length) { toast.error("Both teams need at least one player"); return; }
     if (players.length < MIN_PLAYERS[mode]) { toast.error(`${mode} needs ${MIN_PLAYERS[mode]} players`); return; }
+    if (!teamsBalanced) { toast.error(`Teams must be White ${caps.white} vs Black ${caps.black}`); return; }
+    if (!allReady) { toast.error("Everyone must be ready"); return; }
     const white = whiteTeam[0];
     const black = blackTeam[0];
     const { error } = await (supabase as any).from("chess_games").insert({
@@ -232,7 +236,13 @@ function ChessLobbyPage() {
   };
 
   const setTeam = async (memberId: string, team: "white" | "black") => {
-    await (supabase as any).from("chess_lobby_members").update({ team }).eq("id", memberId);
+    const target = members.find((m) => m.id === memberId);
+    if (!target || target.team === team) return;
+    const count = players.filter((p) => p.team === team && p.id !== memberId).length;
+    if (count >= caps[team]) { toast.error(`${team === "white" ? "White" : "Black"} is full (${caps[team]})`); return; }
+    const { error } = await (supabase as any).from("chess_lobby_members")
+      .update({ team, is_ready: false }).eq("id", memberId);
+    if (error) toast.error(error.message);
   };
 
   const swapColors = async () => {
@@ -316,7 +326,7 @@ function ChessLobbyPage() {
                 onKick={kick} onTransferHost={transferHost} onToggleReady={toggleReady}
                 onStart={startGame} onSwapColors={swapColors} allReady={allReady}
                 myMember={myMember} mode={mode} caps={caps}
-                onSetTeam={setTeam}
+                onSetTeam={setTeam} canStart={canStart} teamsBalanced={teamsBalanced}
               />
             )}
           </div>
@@ -333,6 +343,7 @@ function ChessLobbyPage() {
 function WaitingRoom({
   players, spectators, profileById, lobby, isHost, me,
   onKick, onTransferHost, onToggleReady, onStart, onSwapColors, allReady, mode, caps, onSetTeam,
+  canStart, teamsBalanced,
 }: {
   members: Member[]; players: Member[]; spectators: Member[];
   profileById: Map<string, Profile>; lobby: Lobby; isHost: boolean; me: string;
@@ -340,9 +351,15 @@ function WaitingRoom({
   onStart: () => void; onSwapColors: () => void; allReady: boolean; myMember?: Member;
   mode: ChessMode; caps: { white: number; black: number };
   onSetTeam: (memberId: string, team: "white" | "black") => void;
+  canStart: boolean; teamsBalanced: boolean;
 }) {
   const whiteTeam = players.filter((p) => p.team === "white");
   const blackTeam = players.filter((p) => p.team === "black");
+  const myRow = players.find((p) => p.user_id === me);
+  const startHint = players.length < MIN_PLAYERS[mode]
+    ? `Need ${MIN_PLAYERS[mode]} players`
+    : !teamsBalanced ? `Teams must be ${caps.white} vs ${caps.black}`
+    : !allReady ? "Some players are not ready" : "";
   return (
     <div className="glass rounded-3xl border border-border/60 p-5">
       <div className="flex items-center justify-between mb-1">
@@ -374,10 +391,16 @@ function WaitingRoom({
                 <div className="text-xs text-muted-foreground capitalize">{m.team ?? "team"} · {m.is_ready ? "Ready" : "Not ready"}</div>
               </div>
               {m.user_id === me ? (
-                <button onClick={onToggleReady}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs ${m.is_ready ? "bg-emerald-500/15 text-emerald-500" : "bg-accent hover:bg-accent/70"}`}>
-                  <Check className="h-3 w-3" /> {m.is_ready ? "Ready" : "Ready up"}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => onSetTeam(m.id, m.team === "white" ? "black" : "white")}
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs bg-accent hover:bg-accent/70">
+                    <Shuffle className="h-3 w-3" /> Switch side
+                  </button>
+                  <button onClick={onToggleReady}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs ${m.is_ready ? "bg-emerald-500/15 text-emerald-500" : "bg-accent hover:bg-accent/70"}`}>
+                    <Check className="h-3 w-3" /> {m.is_ready ? "Ready" : "Ready up"}
+                  </button>
+                </div>
               ) : isHost ? (
                 <div className="flex gap-1">
                   <button
@@ -417,17 +440,18 @@ function WaitingRoom({
         )}
       </div>
 
-      {isHost && (
+      {isHost ? (
         <button
           onClick={onStart}
-          disabled={players.length < MIN_PLAYERS[mode] || !whiteTeam.length || !blackTeam.length}
+          disabled={!canStart}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 disabled:opacity-50 transition"
         >
-          <Play className="h-4 w-4" /> Start game {players.length < MIN_PLAYERS[mode] ? `(need ${MIN_PLAYERS[mode]} players)` : allReady ? "" : "(some players not ready)"}
+          <Play className="h-4 w-4" /> Start game {startHint && `(${startHint})`}
         </button>
-      )}
-      {!isHost && (
-        <div className="mt-5 text-center text-xs text-muted-foreground">Waiting for host to start the game…</div>
+      ) : (
+        <div className="mt-5 text-center text-xs text-muted-foreground">
+          {myRow && !myRow.is_ready ? "Ready up so the host can start." : "Waiting for host to start the game…"}
+        </div>
       )}
     </div>
   );

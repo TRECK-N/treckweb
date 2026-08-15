@@ -19,7 +19,7 @@ export function ProUpsell({ feature }: { feature: string }) {
       </div>
       <h3 className="mt-3 font-semibold">{feature} is a TRECK PRO feature</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        Upgrade to unlock unlimited AI, file &amp; image uploads, camera analysis, group creation, and more.
+        Upgrade to unlock unlimited AI, file &amp; image uploads, camera analysis, AI study tools, and more.
       </p>
       <Link
         to="/membership"

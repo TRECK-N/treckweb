@@ -38,7 +38,7 @@ const en: Dict = {
 
   "dashboard.greeting": "Welcome back",
   "dashboard.subtitle": "Everything you need, in one place.",
-  "dashboard.searchPlaceholder": "Search people, groups, notes and files…",
+  "dashboard.searchPlaceholder": "Search people, notes and files…",
 
   "study.title": "Study",
   "study.subtitle": "Flashcards, quizzes and notes — build them yourself or let AI do it.",
@@ -103,7 +103,7 @@ const fr: Dict = {
   "common.search": "Rechercher", "common.save": "Enregistrer", "common.cancel": "Annuler", "common.delete": "Supprimer",
   "common.create": "Créer", "common.loading": "Chargement…", "common.back": "Retour", "common.language": "Langue", "common.theme": "Thème",
   "dashboard.greeting": "Bon retour", "dashboard.subtitle": "Tout ce dont vous avez besoin, au même endroit.",
-  "dashboard.searchPlaceholder": "Rechercher personnes, groupes, notes et fichiers…",
+  "dashboard.searchPlaceholder": "Rechercher personnes, notes et fichiers…",
   "study.title": "Études", "study.subtitle": "Cartes, quiz et notes — créez-les ou laissez l'IA le faire.",
   "study.flashcards": "Cartes mémo", "study.quizzes": "Quiz", "study.notes": "Notes",
   "games.title": "Jeux", "games.subtitle": "Faites une pause — seul ou avec des amis.",
