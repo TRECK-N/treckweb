@@ -416,3 +416,61 @@ function NotesTab({ userId }: { userId: string }) {
     </div>
   );
 }
+
+/* ---------- Workspace integration ---------- */
+
+function useWorkspaceFolders(userId: string) {
+  return useQuery({
+    queryKey: ["ws-folder-list", userId],
+    queryFn: async () => {
+      const { data } = await supabase.from("folders").select("id,name,parent_id").eq("user_id", userId).order("name");
+      const rows = (data ?? []) as Array<{ id: string; name: string; parent_id: string | null }>;
+      const map = new Map(rows.map((r) => [r.id, r]));
+      const label = (r: (typeof rows)[number]) => {
+        const parts: string[] = [];
+        let cur: (typeof rows)[number] | undefined = r;
+        const seen = new Set<string>();
+        while (cur && !seen.has(cur.id)) { seen.add(cur.id); parts.unshift(cur.name); cur = cur.parent_id ? map.get(cur.parent_id) : undefined; }
+        return parts.join(" / ");
+      };
+      return rows.map((r) => ({ id: r.id, label: label(r) })).sort((a, b) => a.label.localeCompare(b.label));
+    },
+  });
+}
+
+function WorkspaceMoveButton({
+  userId, table, id, className,
+}: { userId: string; table: "notes" | "study_decks" | "study_quizzes"; id: string; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const { data: folders = [] } = useWorkspaceFolders(userId);
+
+  const move = async (folderId: string) => {
+    const { error } = await (supabase as any).from(table).update({ folder_id: folderId }).eq("id", id);
+    setOpen(false);
+    if (error) return toast.error(error.message);
+    toast.success("Added to your Workspace folder");
+  };
+
+  return (
+    <div className="relative inline-block">
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+        className={className ?? "inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"}
+      >
+        <FolderInput className="h-3.5 w-3.5" /> Workspace
+      </button>
+      {open && (
+        <div className="glass absolute bottom-full left-0 z-30 mb-2 max-h-56 w-56 overflow-y-auto rounded-xl border border-border/60 p-1.5 text-left shadow-[var(--shadow-elevated)]">
+          {folders.length === 0 ? (
+            <p className="p-2 text-xs text-muted-foreground">Create a folder in Workspace first.</p>
+          ) : folders.map((f) => (
+            <button key={f.id} onClick={(e) => { e.preventDefault(); move(f.id); }}
+              className="block w-full truncate rounded-lg px-2 py-1.5 text-left text-xs hover:bg-accent">
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
