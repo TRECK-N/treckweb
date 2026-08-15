@@ -352,9 +352,13 @@ function QuizzesTab({ userId }: { userId: string }) {
                   {q.ai_generated && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-primary">AI</span>}
                 </div>
               </Link>
-              <button onClick={() => remove.mutate(q.id)} className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
-                <Trash2 className="h-3.5 w-3.5" /> Delete
-              </button>
+              <div className="mt-3 flex items-center gap-4">
+                <button onClick={() => remove.mutate(q.id)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
+                <WorkspaceMoveButton userId={userId} table="study_quizzes" id={q.id} />
+              </div>
+
             </div>
           ))}
         </div>
