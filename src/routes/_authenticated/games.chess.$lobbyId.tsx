@@ -440,17 +440,18 @@ function WaitingRoom({
         )}
       </div>
 
-      {isHost && (
+      {isHost ? (
         <button
           onClick={onStart}
-          disabled={players.length < MIN_PLAYERS[mode] || !whiteTeam.length || !blackTeam.length}
+          disabled={!canStart}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 disabled:opacity-50 transition"
         >
-          <Play className="h-4 w-4" /> Start game {players.length < MIN_PLAYERS[mode] ? `(need ${MIN_PLAYERS[mode]} players)` : allReady ? "" : "(some players not ready)"}
+          <Play className="h-4 w-4" /> Start game {startHint && `(${startHint})`}
         </button>
-      )}
-      {!isHost && (
-        <div className="mt-5 text-center text-xs text-muted-foreground">Waiting for host to start the game…</div>
+      ) : (
+        <div className="mt-5 text-center text-xs text-muted-foreground">
+          {myRow && !myRow.is_ready ? "Ready up so the host can start." : "Waiting for host to start the game…"}
+        </div>
       )}
     </div>
   );
