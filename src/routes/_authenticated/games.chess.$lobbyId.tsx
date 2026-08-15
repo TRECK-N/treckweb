@@ -221,8 +221,9 @@ function ChessLobbyPage() {
   };
 
   const startGame = async () => {
-    if (!whiteTeam.length || !blackTeam.length) { toast.error("Both teams need at least one player"); return; }
     if (players.length < MIN_PLAYERS[mode]) { toast.error(`${mode} needs ${MIN_PLAYERS[mode]} players`); return; }
+    if (!teamsBalanced) { toast.error(`Teams must be White ${caps.white} vs Black ${caps.black}`); return; }
+    if (!allReady) { toast.error("Everyone must be ready"); return; }
     const white = whiteTeam[0];
     const black = blackTeam[0];
     const { error } = await (supabase as any).from("chess_games").insert({
