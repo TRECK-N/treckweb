@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GraduationCap, Layers, ListChecks, StickyNote, Sparkles, Plus, Trash2, Loader2, Crown, Zap,
+  FolderInput, Pencil, X,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
