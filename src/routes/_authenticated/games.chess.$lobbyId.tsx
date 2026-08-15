@@ -180,7 +180,10 @@ function ChessLobbyPage() {
   const caps = TEAM_CAPS[mode];
   const whiteTeam = players.filter((p) => p.team === "white");
   const blackTeam = players.filter((p) => p.team === "black");
-  const allReady = players.length >= 2 && players.every((p) => p.is_ready || p.user_id === lobby.host_id);
+  const teamsBalanced = whiteTeam.length === caps.white && blackTeam.length === caps.black;
+  const allReady = players.length >= MIN_PLAYERS[mode]
+    && players.every((p) => p.is_ready || p.user_id === lobby.host_id);
+  const canStart = teamsBalanced && allReady;
 
   const copyCode = () => {
     if (!lobby.code) return;
