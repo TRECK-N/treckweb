@@ -345,179 +345,6 @@ export type Database = {
         }
         Relationships: []
       }
-      group_invitations: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          invited_by: string
-          invited_user_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          invited_by: string
-          invited_user_id: string
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          invited_by?: string
-          invited_user_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_invitations_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_join_requests: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          status: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          status?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_join_requests_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_members: {
-        Row: {
-          group_id: string
-          id: string
-          joined_at: string
-          role: string
-          user_id: string
-        }
-        Insert: {
-          group_id: string
-          id?: string
-          joined_at?: string
-          role?: string
-          user_id: string
-        }
-        Update: {
-          group_id?: string
-          id?: string
-          joined_at?: string
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_messages: {
-        Row: {
-          attachments: Json
-          content: string | null
-          created_at: string
-          edited_at: string | null
-          group_id: string
-          id: string
-          sender_id: string
-        }
-        Insert: {
-          attachments?: Json
-          content?: string | null
-          created_at?: string
-          edited_at?: string | null
-          group_id: string
-          id?: string
-          sender_id: string
-        }
-        Update: {
-          attachments?: Json
-          content?: string | null
-          created_at?: string
-          edited_at?: string | null
-          group_id?: string
-          id?: string
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_messages_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      groups: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          description: string | null
-          id: string
-          is_public: boolean
-          join_policy: string
-          name: string
-          owner_id: string
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_public?: boolean
-          join_policy?: string
-          name: string
-          owner_id: string
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_public?: boolean
-          join_policy?: string
-          name?: string
-          owner_id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       notes: {
         Row: {
           content: string | null
@@ -953,6 +780,7 @@ export type Database = {
           ai_generated: boolean
           created_at: string
           description: string | null
+          folder_id: string | null
           id: string
           subject: string | null
           title: string
@@ -963,6 +791,7 @@ export type Database = {
           ai_generated?: boolean
           created_at?: string
           description?: string | null
+          folder_id?: string | null
           id?: string
           subject?: string | null
           title: string
@@ -973,13 +802,22 @@ export type Database = {
           ai_generated?: boolean
           created_at?: string
           description?: string | null
+          folder_id?: string | null
           id?: string
           subject?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "study_decks_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       study_questions: {
         Row: {
@@ -1033,6 +871,7 @@ export type Database = {
           ai_generated: boolean
           created_at: string
           description: string | null
+          folder_id: string | null
           id: string
           subject: string | null
           title: string
@@ -1043,6 +882,7 @@ export type Database = {
           ai_generated?: boolean
           created_at?: string
           description?: string | null
+          folder_id?: string | null
           id?: string
           subject?: string | null
           title: string
@@ -1053,13 +893,22 @@ export type Database = {
           ai_generated?: boolean
           created_at?: string
           description?: string | null
+          folder_id?: string | null
           id?: string
           subject?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "study_quizzes_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_files: {
         Row: {
@@ -1111,14 +960,6 @@ export type Database = {
     }
     Functions: {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
-      is_group_admin: {
-        Args: { _group: string; _user: string }
-        Returns: boolean
-      }
-      is_group_member: {
-        Args: { _group: string; _user: string }
-        Returns: boolean
-      }
       is_pro: { Args: { _user: string }; Returns: boolean }
     }
     Enums: {
