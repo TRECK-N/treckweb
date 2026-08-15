@@ -8,13 +8,16 @@ export const Route = createFileRoute("/_authenticated/games/memory")({
 });
 
 type Difficulty = "easy" | "medium" | "hard";
-const CONFIG: Record<Difficulty, { pairs: number; cols: number }> = {
-  easy: { pairs: 6, cols: 4 },
-  medium: { pairs: 8, cols: 4 },
-  hard: { pairs: 12, cols: 6 },
+const CONFIG: Record<Difficulty, { pairs: number; cols: number; peek: number; maxWidth: number }> = {
+  easy: { pairs: 8, cols: 4, peek: 900, maxWidth: 480 },
+  medium: { pairs: 12, cols: 6, peek: 750, maxWidth: 640 },
+  hard: { pairs: 18, cols: 6, peek: 550, maxWidth: 720 },
 };
 
-const EMOJI = ["🚀","🌟","🎧","🎮","🍄","🍕","🐙","🦄","🍩","🎲","⚡","🌈","🔥","🍀","👾","🌙"];
+const EMOJI = [
+  "🚀","🌟","🎧","🎮","🍄","🍕","🐙","🦄","🍩","🎲","⚡","🌈",
+  "🔥","🍀","👾","🌙","🎯","🧊","🍒","🛸","🐝","🎸","🧩","🪐",
+];
 
 type Card = { id: number; symbol: string; flipped: boolean; matched: boolean };
 
