@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Grid3x3, RotateCcw, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/games/2048")({
@@ -53,7 +53,7 @@ function rotate(board: Board): Board {
   return board[0].map((_, c) => board.map((row) => row[c]).reverse());
 }
 
-function move(board: Board, dir: "left" | "right" | "up" | "down"): { board: Board; gained: number; moved: boolean } {
+function move(board: Board, dir: "left" | "right" | "up" | "down"): { board: Board; gained: number; moved: boolean; merged: string[] } {
   const turns = { left: 0, up: 1, right: 2, down: 3 }[dir];
   let work = board.map((row) => [...row]);
   for (let i = 0; i < turns; i++) work = rotate(work);
@@ -65,7 +65,9 @@ function move(board: Board, dir: "left" | "right" | "up" | "down"): { board: Boa
   });
   for (let i = 0; i < (4 - turns) % 4; i++) work = rotate(work);
   const moved = JSON.stringify(work) !== JSON.stringify(board);
-  return { board: work, gained, moved };
+  const merged: string[] = [];
+  work.forEach((row, r) => row.forEach((v, c) => { if (v && v !== board[r][c]) merged.push(`${r}-${c}`); }));
+  return { board: work, gained, moved, merged };
 }
 
 function hasMoves(board: Board): boolean {
@@ -92,6 +94,8 @@ function Game2048() {
   const [best, setBest] = useState(0);
   const [over, setOver] = useState(false);
   const [won, setWon] = useState(false);
+  const [pop, setPop] = useState<string[]>([]);
+  const [gain, setGain] = useState<{ id: number; value: number } | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -101,7 +105,7 @@ function Game2048() {
 
   const reset = () => {
     setBoard(addTile(addTile(emptyBoard())));
-    setScore(0); setOver(false); setWon(false);
+    setScore(0); setOver(false); setWon(false); setPop([]); setGain(null);
   };
 
   const doMove = useCallback((dir: "left" | "right" | "up" | "down") => {
@@ -110,7 +114,9 @@ function Game2048() {
       const res = move(prev, dir);
       if (!res.moved) return prev;
       const next = addTile(res.board);
+      setPop(res.merged);
       if (res.gained) {
+        setGain({ id: Date.now(), value: res.gained });
         setScore((s) => {
           const ns = s + res.gained;
           setBest((b) => {
@@ -186,8 +192,8 @@ function Game2048() {
               row.map((v, c) => (
                 <motion.div
                   key={`${r}-${c}`}
-                  animate={{ scale: v ? 1 : 0.9 }}
-                  transition={{ duration: 0.12 }}
+                  animate={{ scale: v ? (pop.includes(`${r}-${c}`) ? [0.85, 1.12, 1] : 1) : 0.9 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
                   className={`grid place-items-center rounded-2xl text-xl font-bold sm:text-2xl ${
                     v ? TILE_STYLE[v] ?? "bg-emerald-600/80 text-white" : "bg-foreground/[0.05]"
                   }`}
@@ -197,6 +203,22 @@ function Game2048() {
               )),
             )}
           </div>
+
+          <AnimatePresence>
+            {gain && (
+              <motion.span
+                key={gain.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: -18 }}
+                exit={{ opacity: 0, y: -34 }}
+                transition={{ duration: 0.55 }}
+                onAnimationComplete={() => setGain(null)}
+                className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 text-lg font-bold text-amber-400"
+              >
+                +{gain.value}
+              </motion.span>
+            )}
+          </AnimatePresence>
 
           {(over || won) && (
             <div className="absolute inset-0 grid place-items-center rounded-3xl bg-background/75 backdrop-blur-sm">
