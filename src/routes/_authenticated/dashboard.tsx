@@ -94,7 +94,7 @@ function Dashboard() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { to: "/ai", label: "AI Assistant", desc: "Ask anything", icon: Bot },
-            { to: "/chat", label: "Chat", desc: "Friends & groups", icon: MessageCircle },
+            { to: "/chat", label: "Chat", desc: "Friends & messages", icon: MessageCircle },
             { to: "/workspace", label: "Workspace", desc: "Notes & files", icon: FolderOpen },
             { to: "/games", label: "Games", desc: "Play & compete", icon: Gamepad2 },
           ].map((q, i) => (
