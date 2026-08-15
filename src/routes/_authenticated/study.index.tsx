@@ -482,3 +482,73 @@ function WorkspaceMoveButton({
     </div>
   );
 }
+
+function NoteCard({
+  userId, note, onChanged,
+}: { userId: string; note: { id: string; title: string; content: string | null }; onChanged: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(note.title);
+  const [content, setContent] = useState(note.content ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("notes").update({ title: title.trim() || "Untitled note", content }).eq("id", note.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    setEditing(false);
+    toast.success("Note saved");
+    onChanged();
+  };
+
+  const remove = async () => {
+    if (!confirm("Delete this note?")) return;
+    await supabase.from("notes").delete().eq("id", note.id);
+    onChanged();
+  };
+
+  return (
+    <div className={`glass rounded-2xl p-5 transition ${editing ? "sm:col-span-2 lg:col-span-3" : "hover:-translate-y-0.5"}`}>
+      {editing ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <input value={title} onChange={(e) => setTitle(e.target.value)}
+              className="flex-1 rounded-xl border border-border bg-background/60 px-3 py-2 text-sm font-semibold outline-none focus:border-primary" />
+            <button onClick={() => setEditing(false)} className="rounded-lg p-1.5 hover:bg-accent" aria-label="Close editor"><X className="h-4 w-4" /></button>
+          </div>
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} placeholder="Write your study notes…"
+            className="w-full resize-y rounded-xl border border-border bg-background/60 px-3 py-2 text-sm outline-none focus:border-primary" />
+          <div className="flex flex-wrap items-center gap-4">
+            <button onClick={save} disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Save
+            </button>
+            <WorkspaceMoveButton userId={userId} table="notes" id={note.id} />
+            <button onClick={remove} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <button onClick={() => setEditing(true)} className="block w-full text-left">
+            <div className="flex items-center gap-2">
+              <StickyNote className="h-4 w-4 text-amber-400" />
+              <h3 className="truncate font-semibold">{note.title}</h3>
+            </div>
+            <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{note.content || "Empty note"}</p>
+          </button>
+          <div className="mt-3 flex items-center gap-4">
+            <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary">
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </button>
+            <WorkspaceMoveButton userId={userId} table="notes" id={note.id} />
+            <button onClick={remove} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
