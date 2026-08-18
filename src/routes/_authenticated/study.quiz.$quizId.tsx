@@ -149,13 +149,17 @@ function QuizPage() {
                   onBlur={(e) => e.target.value !== q.question && updateQuestion.mutate({ id: q.id, patch: { question: e.target.value } })}
                   className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium outline-none focus:border-primary"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  Tick every correct answer — a question can have more than one.
+                </p>
                 {q.options.map((opt, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <button
-                      onClick={() => updateQuestion.mutate({ id: q.id, patch: { correct_index: i } })}
+                      onClick={() => toggleCorrect(q, i)}
                       title="Mark as correct"
-                      className={`h-6 w-6 shrink-0 rounded-full border grid place-items-center ${
-                        q.correct_index === i ? "border-emerald-500 bg-emerald-500 text-white" : "border-border"
+                      aria-pressed={correctSet(q).includes(i)}
+                      className={`h-6 w-6 shrink-0 rounded-md border grid place-items-center transition ${
+                        correctSet(q).includes(i) ? "border-emerald-500 bg-emerald-500 text-white" : "border-border"
                       }`}
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -175,6 +179,7 @@ function QuizPage() {
                 <button onClick={() => deleteQuestion.mutate(q.id)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
                   <Trash2 className="h-3.5 w-3.5" /> Delete question
                 </button>
+
               </div>
             ))}
             <button onClick={() => addQuestion.mutate()} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">
