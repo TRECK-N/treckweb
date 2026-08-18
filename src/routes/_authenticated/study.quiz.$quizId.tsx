@@ -25,8 +25,22 @@ type Question = {
   question: string;
   options: string[];
   correct_index: number;
+  correct_indexes: number[] | null;
   explanation: string | null;
 };
+
+/** Correct answers for a question — falls back to the legacy single answer. */
+function correctSet(q: Question): number[] {
+  const multi = Array.isArray(q.correct_indexes) ? q.correct_indexes : [];
+  return multi.length ? [...multi].sort((a, b) => a - b) : [q.correct_index];
+}
+
+function sameSet(a: number[], b: number[]) {
+  const x = [...a].sort((p, q) => p - q);
+  const y = [...b].sort((p, q) => p - q);
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+
 
 function QuizPage() {
   const { quizId } = Route.useParams();
