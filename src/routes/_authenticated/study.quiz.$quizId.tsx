@@ -273,13 +273,15 @@ function PlayMode({ questions, quizId, userId }: { questions: Question[]; quizId
             <p className="mt-3 rounded-xl bg-accent/60 p-3 text-xs text-muted-foreground">{q.explanation}</p>
           )}
         </div>
-      ))}
+        );
+      })}
 
       <div className="flex gap-2">
         {!submitted ? (
           <button
             onClick={() => { setSubmitted(true); saveAttempt.mutate(); }}
-            disabled={Object.keys(answers).length !== questions.length}
+            disabled={!answeredAll}
+
             className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
           >
             Submit answers
