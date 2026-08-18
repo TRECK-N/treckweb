@@ -20,13 +20,14 @@ const quizSchema = z.object({
       z.object({
         question: z.string(),
         options: z.array(z.string()).length(4),
-        correctIndex: z.number().int().min(0).max(3),
+        correctIndexes: z.array(z.number().int().min(0).max(3)),
         explanation: z.string(),
       }),
     )
     .min(3)
     .max(15),
 });
+
 
 export const Route = createFileRoute("/api/study-generate")({
   server: {
