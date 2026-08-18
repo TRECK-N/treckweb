@@ -75,12 +75,19 @@ function AuthLayout() {
   const displayName = profile?.display_name || user.email?.split("@")[0] || "You";
   const initials = displayName.split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
 
+  // The Home screen is an immersive command centre: it hides the permanent
+  // sidebar and provides its own floating dock navigation instead.
+  const immersive = pathname === "/dashboard";
+
   return (
     <MusicPlayerProvider>
       <div className="flex min-h-screen w-full bg-background text-foreground">
-        <aside className="hidden lg:flex w-64 flex-col border-r border-border/60 bg-sidebar">
-          <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
-        </aside>
+        {!immersive && (
+          <aside className="hidden lg:flex w-64 flex-col border-r border-border/60 bg-sidebar">
+            <SidebarInner pathname={pathname} displayName={displayName} initials={initials} avatar={profile?.avatar_url} onSignOut={signOut} theme={theme} toggleTheme={toggle} isPro={!!sub?.isPro} />
+          </aside>
+        )}
+
 
         <AnimatePresence>
           {mobileOpen && (

@@ -131,6 +131,7 @@ export type Database = {
           chat_enabled: boolean
           code: string | null
           created_at: string
+          empty_since: string | null
           host_id: string
           id: string
           is_public: boolean
@@ -146,6 +147,7 @@ export type Database = {
           chat_enabled?: boolean
           code?: string | null
           created_at?: string
+          empty_since?: string | null
           host_id: string
           id?: string
           is_public?: boolean
@@ -161,6 +163,7 @@ export type Database = {
           chat_enabled?: boolean
           code?: string | null
           created_at?: string
+          empty_since?: string | null
           host_id?: string
           id?: string
           is_public?: boolean
@@ -822,6 +825,7 @@ export type Database = {
       study_questions: {
         Row: {
           correct_index: number
+          correct_indexes: number[] | null
           created_at: string
           explanation: string | null
           id: string
@@ -834,6 +838,7 @@ export type Database = {
         }
         Insert: {
           correct_index?: number
+          correct_indexes?: number[] | null
           created_at?: string
           explanation?: string | null
           id?: string
@@ -846,6 +851,7 @@ export type Database = {
         }
         Update: {
           correct_index?: number
+          correct_indexes?: number[] | null
           created_at?: string
           explanation?: string | null
           id?: string
@@ -960,6 +966,7 @@ export type Database = {
     }
     Functions: {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
+      chess_cleanup_lobbies: { Args: never; Returns: number }
       is_pro: { Args: { _user: string }; Returns: boolean }
     }
     Enums: {

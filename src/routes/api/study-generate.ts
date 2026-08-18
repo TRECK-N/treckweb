@@ -20,13 +20,14 @@ const quizSchema = z.object({
       z.object({
         question: z.string(),
         options: z.array(z.string()).length(4),
-        correctIndex: z.number().int().min(0).max(3),
+        correctIndexes: z.array(z.number().int().min(0).max(3)),
         explanation: z.string(),
       }),
     )
     .min(3)
     .max(15),
 });
+
 
 export const Route = createFileRoute("/api/study-generate")({
   server: {
@@ -119,9 +120,12 @@ export const Route = createFileRoute("/api/study-generate")({
             schema: quizSchema,
             prompt:
               `Create exactly ${count} multiple-choice quiz questions about: "${topic}".\n` +
-              `Each question has exactly 4 options, exactly one correct answer (correctIndex), and a short explanation. ` +
+              `Each question has exactly 4 options and a short explanation. Most questions have a single ` +
+              `correct answer; where it fits the topic naturally, make a few questions have two or three ` +
+              `correct answers. List every correct option index in correctIndexes (never empty). ` +
               `Also give the quiz a short title and a one-sentence description.`,
           });
+
 
           const { data: quiz, error: quizErr } = await supabase
             .from("study_quizzes")
@@ -137,16 +141,24 @@ export const Route = createFileRoute("/api/study-generate")({
           if (quizErr || !quiz) return new Response("Could not save quiz", { status: 500 });
 
           await supabase.from("study_questions").insert(
-            object.questions.map((q, i) => ({
-              quiz_id: quiz.id,
-              user_id: userId,
-              question: q.question,
-              options: q.options,
-              correct_index: q.correctIndex,
-              explanation: q.explanation,
-              position: i,
-            })),
+            object.questions.map((q, i) => {
+              const correct = (q.correctIndexes.length ? q.correctIndexes : [0])
+                .filter((n) => n >= 0 && n < q.options.length)
+                .sort((a, b) => a - b);
+              const indexes = correct.length ? correct : [0];
+              return {
+                quiz_id: quiz.id,
+                user_id: userId,
+                question: q.question,
+                options: q.options,
+                correct_index: indexes[0],
+                correct_indexes: indexes,
+                explanation: q.explanation,
+                position: i,
+              };
+            }),
           );
+
           await supabase.from("study_ai_generations").insert({ user_id: userId, kind, topic: topic.slice(0, 200) });
           return Response.json({ kind, id: quiz.id, count: object.questions.length });
         } catch {

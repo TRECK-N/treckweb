@@ -166,7 +166,7 @@ function ChessLobbyPage() {
       <div className="p-10 text-center text-muted-foreground">
         Loading lobby…
         <div className="mt-4">
-          <Link to="/games/chess" className="text-primary hover:underline">Back to ChessFriends</Link>
+          <Link to="/games/chess" className="text-primary hover:underline">Back to Chess</Link>
         </div>
       </div>
     );

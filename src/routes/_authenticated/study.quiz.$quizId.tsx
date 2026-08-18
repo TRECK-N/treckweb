@@ -25,8 +25,22 @@ type Question = {
   question: string;
   options: string[];
   correct_index: number;
+  correct_indexes: number[] | null;
   explanation: string | null;
 };
+
+/** Correct answers for a question — falls back to the legacy single answer. */
+function correctSet(q: Question): number[] {
+  const multi = Array.isArray(q.correct_indexes) ? q.correct_indexes : [];
+  return multi.length ? [...multi].sort((a, b) => a - b) : [q.correct_index];
+}
+
+function sameSet(a: number[], b: number[]) {
+  const x = [...a].sort((p, q) => p - q);
+  const y = [...b].sort((p, q) => p - q);
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+
 
 function QuizPage() {
   const { quizId } = Route.useParams();
@@ -57,9 +71,10 @@ function QuizPage() {
 
   const addQuestion = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("study_questions").insert({
+      const { error } = await (supabase as any).from("study_questions").insert({
         quiz_id: quizId, user_id: user.id, question: "New question",
-        options: ["Option A", "Option B", "Option C", "Option D"], correct_index: 0, position: questions?.length ?? 0,
+        options: ["Option A", "Option B", "Option C", "Option D"],
+        correct_index: 0, correct_indexes: [0], position: questions?.length ?? 0,
       });
       if (error) throw error;
     },
@@ -68,11 +83,20 @@ function QuizPage() {
   });
 
   const updateQuestion = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: { question?: string; options?: string[]; correct_index?: number; explanation?: string } }) => {
-      await supabase.from("study_questions").update(patch).eq("id", id);
+    mutationFn: async ({ id, patch }: { id: string; patch: { question?: string; options?: string[]; correct_index?: number; correct_indexes?: number[]; explanation?: string } }) => {
+      await (supabase as any).from("study_questions").update(patch).eq("id", id);
     },
     onSuccess: invalidate,
   });
+
+  /** Toggle one option's "correct" flag, keeping the legacy single column in sync. */
+  const toggleCorrect = (q: Question, i: number) => {
+    const cur = correctSet(q);
+    const next = cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort((a, b) => a - b);
+    if (!next.length) return toast.error("Keep at least one correct answer");
+    updateQuestion.mutate({ id: q.id, patch: { correct_indexes: next, correct_index: next[0] } });
+  };
+
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => { await supabase.from("study_questions").delete().eq("id", id); },
@@ -125,13 +149,17 @@ function QuizPage() {
                   onBlur={(e) => e.target.value !== q.question && updateQuestion.mutate({ id: q.id, patch: { question: e.target.value } })}
                   className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium outline-none focus:border-primary"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  Tick every correct answer — a question can have more than one.
+                </p>
                 {q.options.map((opt, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <button
-                      onClick={() => updateQuestion.mutate({ id: q.id, patch: { correct_index: i } })}
+                      onClick={() => toggleCorrect(q, i)}
                       title="Mark as correct"
-                      className={`h-6 w-6 shrink-0 rounded-full border grid place-items-center ${
-                        q.correct_index === i ? "border-emerald-500 bg-emerald-500 text-white" : "border-border"
+                      aria-pressed={correctSet(q).includes(i)}
+                      className={`h-6 w-6 shrink-0 rounded-md border grid place-items-center transition ${
+                        correctSet(q).includes(i) ? "border-emerald-500 bg-emerald-500 text-white" : "border-border"
                       }`}
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -151,6 +179,7 @@ function QuizPage() {
                 <button onClick={() => deleteQuestion.mutate(q.id)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive">
                   <Trash2 className="h-3.5 w-3.5" /> Delete question
                 </button>
+
               </div>
             ))}
             <button onClick={() => addQuestion.mutate()} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">
@@ -164,11 +193,22 @@ function QuizPage() {
 }
 
 function PlayMode({ questions, quizId, userId }: { questions: Question[]; quizId: string; userId: string }) {
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number[]>>({});
   const [submitted, setSubmitted] = useState(false);
   const qc = useQueryClient();
 
-  const score = questions.reduce((acc, q) => acc + (answers[q.id] === q.correct_index ? 1 : 0), 0);
+  const score = questions.reduce((acc, q) => acc + (sameSet(answers[q.id] ?? [], correctSet(q)) ? 1 : 0), 0);
+  const answeredAll = questions.every((q) => (answers[q.id] ?? []).length > 0);
+
+  const pick = (q: Question, i: number) => {
+    const multi = correctSet(q).length > 1;
+    setAnswers((a) => {
+      const cur = a[q.id] ?? [];
+      if (!multi) return { ...a, [q.id]: [i] };
+      return { ...a, [q.id]: cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i] };
+    });
+  };
+
 
   const saveAttempt = useMutation({
     mutationFn: async () => {
@@ -197,19 +237,24 @@ function PlayMode({ questions, quizId, userId }: { questions: Question[]; quizId
         </motion.div>
       )}
 
-      {questions.map((q, qi) => (
+      {questions.map((q, qi) => {
+        const solution = correctSet(q);
+        const multi = solution.length > 1;
+        return (
         <div key={q.id} className="glass rounded-2xl p-5">
           <p className="font-medium">{qi + 1}. {q.question}</p>
+          {multi && <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-primary">Select all that apply</p>}
           <div className="mt-3 grid gap-2">
             {q.options.map((opt, i) => {
-              const picked = answers[q.id] === i;
-              const correct = q.correct_index === i;
+              const picked = (answers[q.id] ?? []).includes(i);
+              const correct = solution.includes(i);
               const state = submitted ? (correct ? "correct" : picked ? "wrong" : "idle") : picked ? "picked" : "idle";
               return (
                 <button
                   key={i}
                   disabled={submitted}
-                  onClick={() => setAnswers((a) => ({ ...a, [q.id]: i }))}
+                  onClick={() => pick(q, i)}
+
                   className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-left text-sm transition ${
                     state === "correct" ? "border-emerald-500/60 bg-emerald-500/10"
                     : state === "wrong" ? "border-destructive/60 bg-destructive/10"
@@ -228,13 +273,15 @@ function PlayMode({ questions, quizId, userId }: { questions: Question[]; quizId
             <p className="mt-3 rounded-xl bg-accent/60 p-3 text-xs text-muted-foreground">{q.explanation}</p>
           )}
         </div>
-      ))}
+        );
+      })}
 
       <div className="flex gap-2">
         {!submitted ? (
           <button
             onClick={() => { setSubmitted(true); saveAttempt.mutate(); }}
-            disabled={Object.keys(answers).length !== questions.length}
+            disabled={!answeredAll}
+
             className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
           >
             Submit answers

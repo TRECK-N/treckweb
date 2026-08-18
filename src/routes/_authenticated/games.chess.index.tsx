@@ -27,8 +27,8 @@ function ChessHome() {
 
   const [name, setName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
-  const [mode, setMode] = useState<"1v1" | "2v2" | "2v1">("1v1");
-  const maxPlayers = mode === "2v2" ? 4 : mode === "2v1" ? 3 : 2;
+  const mode = "1v1" as const;
+  const maxPlayers = 2;
   const [timeControl, setTimeControl] = useState<number | null>(null);
   const [chatEnabled, setChatEnabled] = useState(true);
   const [spectators, setSpectators] = useState(true);
@@ -39,18 +39,24 @@ function ChessHome() {
 
   const { data: lobbies, refetch, isFetching } = useQuery({
     queryKey: ["chess-lobbies"],
+    refetchInterval: 20000,
     queryFn: async () => {
+      // Server-side sweep: removes lobbies that have been empty for over a minute.
+      await (supabase as any).rpc("chess_cleanup_lobbies");
+      const cutoff = new Date(Date.now() - 60_000).toISOString();
       const { data, error } = await (supabase as any)
         .from("chess_lobbies")
-        .select("id,name,host_id,is_public,max_players,status,time_control_seconds,created_at")
+        .select("id,name,host_id,is_public,max_players,status,time_control_seconds,created_at,empty_since")
         .eq("is_public", true)
         .in("status", ["waiting", "playing"])
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data as Array<{ id: string; name: string; host_id: string; is_public: boolean; max_players: number; status: string; time_control_seconds: number | null; created_at: string }>;
+      return (data as Array<{ id: string; name: string; host_id: string; is_public: boolean; max_players: number; status: string; time_control_seconds: number | null; created_at: string; empty_since: string | null }>)
+        .filter((l) => !l.empty_since || l.empty_since > cutoff);
     },
   });
+
 
   useEffect(() => {
     const ch = (supabase as any)
@@ -117,7 +123,7 @@ function ChessHome() {
             <Crown className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">ChessFriends</h1>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Chess</h1>
             <p className="text-sm text-muted-foreground">Create a lobby, invite friends, or jump into a public match.</p>
           </div>
         </motion.div>
@@ -225,18 +231,14 @@ function ChessHome() {
 
               <div>
                 <label className="text-xs uppercase tracking-wider text-muted-foreground">Match mode</label>
-                <select
-                  value={mode} onChange={(e) => setMode(e.target.value as "1v1" | "2v2" | "2v1")}
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-background/50 border border-border/60 text-sm"
-                >
-                  <option value="1v1">1v1 — Classic (2 players)</option>
-                  <option value="2v2">2v2 — Teams, alternating moves (4 players)</option>
-                  <option value="2v1">2v1 — Handicap duo vs solo (3 players)</option>
-                </select>
+                <div className="mt-1 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5 text-sm">
+                  1v1 Chess — classic two-player match
+                </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  In team modes, teammates take turns making their side's moves.
+                  Invite a friend with your lobby code, or let someone join from Browse.
                 </p>
               </div>
+
 
               <div>
                 <label className="text-xs uppercase tracking-wider text-muted-foreground">Time control</label>
