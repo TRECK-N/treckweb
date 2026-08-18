@@ -193,11 +193,22 @@ function QuizPage() {
 }
 
 function PlayMode({ questions, quizId, userId }: { questions: Question[]; quizId: string; userId: string }) {
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number[]>>({});
   const [submitted, setSubmitted] = useState(false);
   const qc = useQueryClient();
 
-  const score = questions.reduce((acc, q) => acc + (answers[q.id] === q.correct_index ? 1 : 0), 0);
+  const score = questions.reduce((acc, q) => acc + (sameSet(answers[q.id] ?? [], correctSet(q)) ? 1 : 0), 0);
+  const answeredAll = questions.every((q) => (answers[q.id] ?? []).length > 0);
+
+  const pick = (q: Question, i: number) => {
+    const multi = correctSet(q).length > 1;
+    setAnswers((a) => {
+      const cur = a[q.id] ?? [];
+      if (!multi) return { ...a, [q.id]: [i] };
+      return { ...a, [q.id]: cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i] };
+    });
+  };
+
 
   const saveAttempt = useMutation({
     mutationFn: async () => {
