@@ -39,18 +39,24 @@ function ChessHome() {
 
   const { data: lobbies, refetch, isFetching } = useQuery({
     queryKey: ["chess-lobbies"],
+    refetchInterval: 20000,
     queryFn: async () => {
+      // Server-side sweep: removes lobbies that have been empty for over a minute.
+      await (supabase as any).rpc("chess_cleanup_lobbies");
+      const cutoff = new Date(Date.now() - 60_000).toISOString();
       const { data, error } = await (supabase as any)
         .from("chess_lobbies")
-        .select("id,name,host_id,is_public,max_players,status,time_control_seconds,created_at")
+        .select("id,name,host_id,is_public,max_players,status,time_control_seconds,created_at,empty_since")
         .eq("is_public", true)
         .in("status", ["waiting", "playing"])
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data as Array<{ id: string; name: string; host_id: string; is_public: boolean; max_players: number; status: string; time_control_seconds: number | null; created_at: string }>;
+      return (data as Array<{ id: string; name: string; host_id: string; is_public: boolean; max_players: number; status: string; time_control_seconds: number | null; created_at: string; empty_since: string | null }>)
+        .filter((l) => !l.empty_since || l.empty_since > cutoff);
     },
   });
+
 
   useEffect(() => {
     const ch = (supabase as any)
