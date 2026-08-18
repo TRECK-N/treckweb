@@ -19,8 +19,8 @@ type Game = {
 const GAMES: Game[] = [
   {
     id: "chessfriends",
-    title: "ChessFriends",
-    description: "A premium multiplayer chess platform — create lobbies, invite friends, play live.",
+    title: "Chess",
+    description: "Classic 1v1 multiplayer chess — create a lobby, invite a friend, play live.",
     gradient: "from-amber-500 via-orange-500 to-rose-500",
     icon: Crown,
     to: "/games/chess",

@@ -12,7 +12,7 @@ const PLATFORM_CONTENT: Array<{ id: string; title: string; desc: string; to: str
   { id: "music-pack", title: "Music Pack", desc: "Temporarily unavailable.", to: "/membership", keywords: "music pack songs library unlock purchase" },
   { id: "study", title: "Study", desc: "Flashcards, notes and quizzes for every subject.", to: "/dashboard", keywords: "study flashcards quiz notes learning revision" },
   { id: "workspace", title: "Workspace", desc: "Your private folders, notes and files.", to: "/workspace", keywords: "workspace folders files notes documents upload storage" },
-  { id: "games", title: "Games", desc: "ChessFriends, Snake and more.", to: "/games", keywords: "games chess snake play arcade" },
+  { id: "games", title: "Games", desc: "Chess, Snake and more.", to: "/games", keywords: "games chess snake play arcade" },
   { id: "chat", title: "Chat", desc: "Friends, requests and discovery.", to: "/chat", keywords: "chat messages friends requests dm" },
   { id: "ai", title: "AI Assistant", desc: "Ask questions, get explanations and code help.", to: "/ai", keywords: "ai assistant chatbot help explain" },
   { id: "settings", title: "Settings", desc: "Profile, language, appearance and account.", to: "/settings", keywords: "settings profile language theme account password" },

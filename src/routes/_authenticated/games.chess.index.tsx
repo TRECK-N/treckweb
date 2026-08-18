@@ -123,7 +123,7 @@ function ChessHome() {
             <Crown className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">ChessFriends</h1>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Chess</h1>
             <p className="text-sm text-muted-foreground">Create a lobby, invite friends, or jump into a public match.</p>
           </div>
         </motion.div>
