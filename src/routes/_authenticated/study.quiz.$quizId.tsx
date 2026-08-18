@@ -237,19 +237,24 @@ function PlayMode({ questions, quizId, userId }: { questions: Question[]; quizId
         </motion.div>
       )}
 
-      {questions.map((q, qi) => (
+      {questions.map((q, qi) => {
+        const solution = correctSet(q);
+        const multi = solution.length > 1;
+        return (
         <div key={q.id} className="glass rounded-2xl p-5">
           <p className="font-medium">{qi + 1}. {q.question}</p>
+          {multi && <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-primary">Select all that apply</p>}
           <div className="mt-3 grid gap-2">
             {q.options.map((opt, i) => {
-              const picked = answers[q.id] === i;
-              const correct = q.correct_index === i;
+              const picked = (answers[q.id] ?? []).includes(i);
+              const correct = solution.includes(i);
               const state = submitted ? (correct ? "correct" : picked ? "wrong" : "idle") : picked ? "picked" : "idle";
               return (
                 <button
                   key={i}
                   disabled={submitted}
-                  onClick={() => setAnswers((a) => ({ ...a, [q.id]: i }))}
+                  onClick={() => pick(q, i)}
+
                   className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-left text-sm transition ${
                     state === "correct" ? "border-emerald-500/60 bg-emerald-500/10"
                     : state === "wrong" ? "border-destructive/60 bg-destructive/10"
