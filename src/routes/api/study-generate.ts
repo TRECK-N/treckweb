@@ -141,16 +141,24 @@ export const Route = createFileRoute("/api/study-generate")({
           if (quizErr || !quiz) return new Response("Could not save quiz", { status: 500 });
 
           await supabase.from("study_questions").insert(
-            object.questions.map((q, i) => ({
-              quiz_id: quiz.id,
-              user_id: userId,
-              question: q.question,
-              options: q.options,
-              correct_index: q.correctIndex,
-              explanation: q.explanation,
-              position: i,
-            })),
+            object.questions.map((q, i) => {
+              const correct = (q.correctIndexes.length ? q.correctIndexes : [0])
+                .filter((n) => n >= 0 && n < q.options.length)
+                .sort((a, b) => a - b);
+              const indexes = correct.length ? correct : [0];
+              return {
+                quiz_id: quiz.id,
+                user_id: userId,
+                question: q.question,
+                options: q.options,
+                correct_index: indexes[0],
+                correct_indexes: indexes,
+                explanation: q.explanation,
+                position: i,
+              };
+            }),
           );
+
           await supabase.from("study_ai_generations").insert({ user_id: userId, kind, topic: topic.slice(0, 200) });
           return Response.json({ kind, id: quiz.id, count: object.questions.length });
         } catch {
