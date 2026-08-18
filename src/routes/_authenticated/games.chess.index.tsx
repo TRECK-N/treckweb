@@ -225,18 +225,14 @@ function ChessHome() {
 
               <div>
                 <label className="text-xs uppercase tracking-wider text-muted-foreground">Match mode</label>
-                <select
-                  value={mode} onChange={(e) => setMode(e.target.value as "1v1" | "2v2" | "2v1")}
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-background/50 border border-border/60 text-sm"
-                >
-                  <option value="1v1">1v1 — Classic (2 players)</option>
-                  <option value="2v2">2v2 — Teams, alternating moves (4 players)</option>
-                  <option value="2v1">2v1 — Handicap duo vs solo (3 players)</option>
-                </select>
+                <div className="mt-1 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5 text-sm">
+                  1v1 Chess — classic two-player match
+                </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  In team modes, teammates take turns making their side's moves.
+                  Invite a friend with your lobby code, or let someone join from Browse.
                 </p>
               </div>
+
 
               <div>
                 <label className="text-xs uppercase tracking-wider text-muted-foreground">Time control</label>
