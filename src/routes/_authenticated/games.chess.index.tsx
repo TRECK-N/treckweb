@@ -27,8 +27,8 @@ function ChessHome() {
 
   const [name, setName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
-  const [mode, setMode] = useState<"1v1" | "2v2" | "2v1">("1v1");
-  const maxPlayers = mode === "2v2" ? 4 : mode === "2v1" ? 3 : 2;
+  const mode = "1v1" as const;
+  const maxPlayers = 2;
   const [timeControl, setTimeControl] = useState<number | null>(null);
   const [chatEnabled, setChatEnabled] = useState(true);
   const [spectators, setSpectators] = useState(true);
