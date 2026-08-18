@@ -120,9 +120,12 @@ export const Route = createFileRoute("/api/study-generate")({
             schema: quizSchema,
             prompt:
               `Create exactly ${count} multiple-choice quiz questions about: "${topic}".\n` +
-              `Each question has exactly 4 options, exactly one correct answer (correctIndex), and a short explanation. ` +
+              `Each question has exactly 4 options and a short explanation. Most questions have a single ` +
+              `correct answer; where it fits the topic naturally, make a few questions have two or three ` +
+              `correct answers. List every correct option index in correctIndexes (never empty). ` +
               `Also give the quiz a short title and a one-sentence description.`,
           });
+
 
           const { data: quiz, error: quizErr } = await supabase
             .from("study_quizzes")
