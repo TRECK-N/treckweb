@@ -71,9 +71,10 @@ function QuizPage() {
 
   const addQuestion = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("study_questions").insert({
+      const { error } = await (supabase as any).from("study_questions").insert({
         quiz_id: quizId, user_id: user.id, question: "New question",
-        options: ["Option A", "Option B", "Option C", "Option D"], correct_index: 0, position: questions?.length ?? 0,
+        options: ["Option A", "Option B", "Option C", "Option D"],
+        correct_index: 0, correct_indexes: [0], position: questions?.length ?? 0,
       });
       if (error) throw error;
     },
@@ -82,11 +83,20 @@ function QuizPage() {
   });
 
   const updateQuestion = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: { question?: string; options?: string[]; correct_index?: number; explanation?: string } }) => {
-      await supabase.from("study_questions").update(patch).eq("id", id);
+    mutationFn: async ({ id, patch }: { id: string; patch: { question?: string; options?: string[]; correct_index?: number; correct_indexes?: number[]; explanation?: string } }) => {
+      await (supabase as any).from("study_questions").update(patch).eq("id", id);
     },
     onSuccess: invalidate,
   });
+
+  /** Toggle one option's "correct" flag, keeping the legacy single column in sync. */
+  const toggleCorrect = (q: Question, i: number) => {
+    const cur = correctSet(q);
+    const next = cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort((a, b) => a - b);
+    if (!next.length) return toast.error("Keep at least one correct answer");
+    updateQuestion.mutate({ id: q.id, patch: { correct_indexes: next, correct_index: next[0] } });
+  };
+
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => { await supabase.from("study_questions").delete().eq("id", id); },
