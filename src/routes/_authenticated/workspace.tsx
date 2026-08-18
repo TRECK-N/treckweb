@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceUniverse, type UniverseCounts, type UniverseItem } from "@/components/workspace-universe";
+import { FilePreview } from "@/components/file-preview";
 
 export const Route = createFileRoute("/_authenticated/workspace")({
   head: () => ({
