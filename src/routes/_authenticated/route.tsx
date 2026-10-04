@@ -143,7 +143,7 @@ function AuthLayout() {
 
         {/* Floating Webu control (Home has its own) */}
         {!isHome && (
-          <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3 md:bottom-5 md:right-5">
+          <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3 md:bottom-28 md:right-5">
             <AnimatePresence>
               {voiceOpen && (
                 <motion.div initial={{ opacity: 0, y: 10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.97 }}
