@@ -131,7 +131,7 @@ function AuthPage() {
           className="hidden lg:block"
         >
           <div className="flex items-center gap-3">
-            <img src={logoAsset.url} alt="WebuWeb" className="h-12 w-12 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.4)]" />
+            <img src={logoAsset.url} alt="WebuWeb" className="h-12 w-12 object-contain drop-shadow-[0_0_18px_color-mix(in_oklab,var(--primary)_40%,transparent)]" />
             <span className="text-xl font-semibold tracking-tight">WebuWeb</span>
           </div>
           <h1 className="mt-10 text-5xl font-semibold leading-[1.05] tracking-tight">
