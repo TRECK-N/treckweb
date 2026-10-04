@@ -9,42 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedMembershipRouteImport } from './routes/_authenticated/membership'
-import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
-import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as ApiStudyGenerateRouteImport } from './routes/api/study-generate'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiWebuCommandRouteImport } from './routes/api/webu-command'
-import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
-import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
-import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
-import { Route as AuthenticatedGames2048RouteImport } from './routes/_authenticated/games.2048'
-import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
-import { Route as AuthenticatedGamesMinesweeperRouteImport } from './routes/_authenticated/games.minesweeper'
-import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
-import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
-import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
+import { Route as ApiStudyGenerateRouteImport } from './routes/api/study-generate'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
+import { Route as AuthenticatedMembershipRouteImport } from './routes/_authenticated/membership'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedStudyIndexRouteImport } from './routes/_authenticated/study.index'
+import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
+import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
+import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
+import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
+import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
+import { Route as AuthenticatedGamesMinesweeperRouteImport } from './routes/_authenticated/games.minesweeper'
+import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
+import { Route as AuthenticatedGames2048RouteImport } from './routes/_authenticated/games.2048'
+import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedGamesChessIndexRouteImport } from './routes/_authenticated/games.chess.index'
-import { Route as AuthenticatedGamesChessLobbyIdRouteImport } from './routes/_authenticated/games.chess.$lobbyId'
-import { Route as AuthenticatedStudyDeckDeckIdRouteImport } from './routes/_authenticated/study.deck.$deckId'
 import { Route as AuthenticatedStudyQuizQuizIdRouteImport } from './routes/_authenticated/study.quiz.$quizId'
+import { Route as AuthenticatedStudyDeckDeckIdRouteImport } from './routes/_authenticated/study.deck.$deckId'
+import { Route as AuthenticatedGamesChessLobbyIdRouteImport } from './routes/_authenticated/games.chess.$lobbyId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -52,54 +48,13 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMembershipRoute = AuthenticatedMembershipRouteImport.update({
-  id: '/membership',
-  path: '/membership',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMusicRoute = AuthenticatedMusicRouteImport.update({
-  id: '/music',
-  path: '/music',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
-  id: '/workspace',
-  path: '/workspace',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStudyGenerateRoute = ApiStudyGenerateRouteImport.update({
-  id: '/api/study-generate',
-  path: '/api/study-generate',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWebuCommandRoute = ApiWebuCommandRouteImport.update({
@@ -107,41 +62,54 @@ const ApiWebuCommandRoute = ApiWebuCommandRouteImport.update({
   path: '/api/webu-command',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
-  id: '/ai/',
-  path: '/ai/',
+const ApiStudyGenerateRoute = ApiStudyGenerateRouteImport.update({
+  id: '/api/study-generate',
+  path: '/api/study-generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
-  id: '/ai/$threadId',
-  path: '/ai/$threadId',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGamesIndexRoute = AuthenticatedGamesIndexRouteImport.update({
-  id: '/games/',
-  path: '/games/',
+const AuthenticatedMusicRoute = AuthenticatedMusicRouteImport.update({
+  id: '/music',
+  path: '/music',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGames2048Route = AuthenticatedGames2048RouteImport.update({
-  id: '/games/2048',
-  path: '/games/2048',
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGamesMemoryRoute =
-  AuthenticatedGamesMemoryRouteImport.update({
-    id: '/games/memory',
-    path: '/games/memory',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGamesMinesweeperRoute =
-  AuthenticatedGamesMinesweeperRouteImport.update({
-    id: '/games/minesweeper',
-    path: '/games/minesweeper',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
-  id: '/games/snake',
-  path: '/games/snake',
+const AuthenticatedMembershipRoute = AuthenticatedMembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStudyIndexRoute = AuthenticatedStudyIndexRouteImport.update({
+  id: '/study/',
+  path: '/study/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMessagesIndexRoute =
@@ -150,15 +118,47 @@ const AuthenticatedMessagesIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
+const AuthenticatedGamesIndexRoute = AuthenticatedGamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
+  id: '/ai/',
+  path: '/ai/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMessagesUserIdRoute =
   AuthenticatedMessagesUserIdRouteImport.update({
     id: '/$userId',
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
-const AuthenticatedStudyIndexRoute = AuthenticatedStudyIndexRouteImport.update({
-  id: '/study/',
-  path: '/study/',
+const AuthenticatedGamesSnakeRoute = AuthenticatedGamesSnakeRouteImport.update({
+  id: '/games/snake',
+  path: '/games/snake',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGamesMinesweeperRoute =
+  AuthenticatedGamesMinesweeperRouteImport.update({
+    id: '/games/minesweeper',
+    path: '/games/minesweeper',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGamesMemoryRoute =
+  AuthenticatedGamesMemoryRouteImport.update({
+    id: '/games/memory',
+    path: '/games/memory',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGames2048Route = AuthenticatedGames2048RouteImport.update({
+  id: '/games/2048',
+  path: '/games/2048',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
+  id: '/ai/$threadId',
+  path: '/ai/$threadId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGamesChessIndexRoute =
@@ -167,10 +167,10 @@ const AuthenticatedGamesChessIndexRoute =
     path: '/games/chess/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGamesChessLobbyIdRoute =
-  AuthenticatedGamesChessLobbyIdRouteImport.update({
-    id: '/games/chess/$lobbyId',
-    path: '/games/chess/$lobbyId',
+const AuthenticatedStudyQuizQuizIdRoute =
+  AuthenticatedStudyQuizQuizIdRouteImport.update({
+    id: '/study/quiz/$quizId',
+    path: '/study/quiz/$quizId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedStudyDeckDeckIdRoute =
@@ -179,10 +179,10 @@ const AuthenticatedStudyDeckDeckIdRoute =
     path: '/study/deck/$deckId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedStudyQuizQuizIdRoute =
-  AuthenticatedStudyQuizQuizIdRouteImport.update({
-    id: '/study/quiz/$quizId',
-    path: '/study/quiz/$quizId',
+const AuthenticatedGamesChessLobbyIdRoute =
+  AuthenticatedGamesChessLobbyIdRouteImport.update({
+    id: '/games/chess/$lobbyId',
+    path: '/games/chess/$lobbyId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -376,18 +376,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -397,74 +390,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/chat': {
-      id: '/_authenticated/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof AuthenticatedChatRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/membership': {
-      id: '/_authenticated/membership'
-      path: '/membership'
-      fullPath: '/membership'
-      preLoaderRoute: typeof AuthenticatedMembershipRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/messages': {
-      id: '/_authenticated/messages'
-      path: '/messages'
-      fullPath: '/messages'
-      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/music': {
-      id: '/_authenticated/music'
-      path: '/music'
-      fullPath: '/music'
-      preLoaderRoute: typeof AuthenticatedMusicRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/workspace': {
-      id: '/_authenticated/workspace'
-      path: '/workspace'
-      fullPath: '/workspace'
-      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/study-generate': {
-      id: '/api/study-generate'
-      path: '/api/study-generate'
-      fullPath: '/api/study-generate'
-      preLoaderRoute: typeof ApiStudyGenerateRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/webu-command': {
@@ -474,53 +411,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWebuCommandRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/ai/': {
-      id: '/_authenticated/ai/'
-      path: '/ai'
-      fullPath: '/ai/'
-      preLoaderRoute: typeof AuthenticatedAiIndexRouteImport
+    '/api/study-generate': {
+      id: '/api/study-generate'
+      path: '/api/study-generate'
+      fullPath: '/api/study-generate'
+      preLoaderRoute: typeof ApiStudyGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/workspace': {
+      id: '/_authenticated/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/ai/$threadId': {
-      id: '/_authenticated/ai/$threadId'
-      path: '/ai/$threadId'
-      fullPath: '/ai/$threadId'
-      preLoaderRoute: typeof AuthenticatedAiThreadIdRouteImport
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/games/': {
-      id: '/_authenticated/games/'
-      path: '/games'
-      fullPath: '/games/'
-      preLoaderRoute: typeof AuthenticatedGamesIndexRouteImport
+    '/_authenticated/music': {
+      id: '/_authenticated/music'
+      path: '/music'
+      fullPath: '/music'
+      preLoaderRoute: typeof AuthenticatedMusicRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/games/2048': {
-      id: '/_authenticated/games/2048'
-      path: '/games/2048'
-      fullPath: '/games/2048'
-      preLoaderRoute: typeof AuthenticatedGames2048RouteImport
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/games/memory': {
-      id: '/_authenticated/games/memory'
-      path: '/games/memory'
-      fullPath: '/games/memory'
-      preLoaderRoute: typeof AuthenticatedGamesMemoryRouteImport
+    '/_authenticated/membership': {
+      id: '/_authenticated/membership'
+      path: '/membership'
+      fullPath: '/membership'
+      preLoaderRoute: typeof AuthenticatedMembershipRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/games/minesweeper': {
-      id: '/_authenticated/games/minesweeper'
-      path: '/games/minesweeper'
-      fullPath: '/games/minesweeper'
-      preLoaderRoute: typeof AuthenticatedGamesMinesweeperRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/games/snake': {
-      id: '/_authenticated/games/snake'
-      path: '/games/snake'
-      fullPath: '/games/snake'
-      preLoaderRoute: typeof AuthenticatedGamesSnakeRouteImport
+    '/_authenticated/chat': {
+      id: '/_authenticated/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AuthenticatedChatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/study/': {
+      id: '/_authenticated/study/'
+      path: '/study'
+      fullPath: '/study/'
+      preLoaderRoute: typeof AuthenticatedStudyIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/messages/': {
@@ -530,6 +488,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesIndexRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
+    '/_authenticated/games/': {
+      id: '/_authenticated/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof AuthenticatedGamesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ai/': {
+      id: '/_authenticated/ai/'
+      path: '/ai'
+      fullPath: '/ai/'
+      preLoaderRoute: typeof AuthenticatedAiIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/messages/$userId': {
       id: '/_authenticated/messages/$userId'
       path: '/$userId'
@@ -537,11 +509,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
-    '/_authenticated/study/': {
-      id: '/_authenticated/study/'
-      path: '/study'
-      fullPath: '/study/'
-      preLoaderRoute: typeof AuthenticatedStudyIndexRouteImport
+    '/_authenticated/games/snake': {
+      id: '/_authenticated/games/snake'
+      path: '/games/snake'
+      fullPath: '/games/snake'
+      preLoaderRoute: typeof AuthenticatedGamesSnakeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games/minesweeper': {
+      id: '/_authenticated/games/minesweeper'
+      path: '/games/minesweeper'
+      fullPath: '/games/minesweeper'
+      preLoaderRoute: typeof AuthenticatedGamesMinesweeperRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games/memory': {
+      id: '/_authenticated/games/memory'
+      path: '/games/memory'
+      fullPath: '/games/memory'
+      preLoaderRoute: typeof AuthenticatedGamesMemoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games/2048': {
+      id: '/_authenticated/games/2048'
+      path: '/games/2048'
+      fullPath: '/games/2048'
+      preLoaderRoute: typeof AuthenticatedGames2048RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ai/$threadId': {
+      id: '/_authenticated/ai/$threadId'
+      path: '/ai/$threadId'
+      fullPath: '/ai/$threadId'
+      preLoaderRoute: typeof AuthenticatedAiThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/games/chess/': {
@@ -551,11 +551,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGamesChessIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/games/chess/$lobbyId': {
-      id: '/_authenticated/games/chess/$lobbyId'
-      path: '/games/chess/$lobbyId'
-      fullPath: '/games/chess/$lobbyId'
-      preLoaderRoute: typeof AuthenticatedGamesChessLobbyIdRouteImport
+    '/_authenticated/study/quiz/$quizId': {
+      id: '/_authenticated/study/quiz/$quizId'
+      path: '/study/quiz/$quizId'
+      fullPath: '/study/quiz/$quizId'
+      preLoaderRoute: typeof AuthenticatedStudyQuizQuizIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/study/deck/$deckId': {
@@ -565,11 +565,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudyDeckDeckIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/study/quiz/$quizId': {
-      id: '/_authenticated/study/quiz/$quizId'
-      path: '/study/quiz/$quizId'
-      fullPath: '/study/quiz/$quizId'
-      preLoaderRoute: typeof AuthenticatedStudyQuizQuizIdRouteImport
+    '/_authenticated/games/chess/$lobbyId': {
+      id: '/_authenticated/games/chess/$lobbyId'
+      path: '/games/chess/$lobbyId'
+      fullPath: '/games/chess/$lobbyId'
+      preLoaderRoute: typeof AuthenticatedGamesChessLobbyIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
