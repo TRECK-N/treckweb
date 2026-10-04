@@ -217,7 +217,7 @@ function AuthPage() {
               <label className="flex cursor-pointer select-none items-center gap-2.5 pt-1 text-sm text-muted-foreground">
                 <input
                   type="checkbox" checked={stay} onChange={(e) => setStay(e.target.checked)}
-                  className="h-4 w-4 rounded border-border accent-[hsl(var(--primary))]"
+                  className="h-4 w-4 rounded border-border accent-[var(--primary)]"
                 />
                 Stay signed in
               </label>

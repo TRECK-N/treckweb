@@ -4,10 +4,10 @@ import logoAsset from "@/assets/webuweb-mark.png.asset.json";
 export type CoreState = "idle" | "listening" | "thinking" | "speaking";
 
 const TINT: Record<CoreState, string> = {
-  idle: "hsl(var(--primary) / 0.45)",
-  listening: "hsl(var(--primary) / 0.75)",
-  thinking: "hsl(var(--primary) / 0.65)",
-  speaking: "hsl(var(--primary) / 0.85)",
+  idle: "color-mix(in oklab, var(--primary) calc(0.45 * 100%), transparent)",
+  listening: "color-mix(in oklab, var(--primary) calc(0.75 * 100%), transparent)",
+  thinking: "color-mix(in oklab, var(--primary) calc(0.65 * 100%), transparent)",
+  speaking: "color-mix(in oklab, var(--primary) calc(0.85 * 100%), transparent)",
 };
 
 /**
