@@ -348,6 +348,106 @@ export type Database = {
         }
         Relationships: []
       }
+      game_favorites: {
+        Row: {
+          created_at: string
+          game_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_favorites_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_plays: {
+        Row: {
+          game_id: string
+          played_at: string
+          user_id: string
+        }
+        Insert: {
+          game_id: string
+          played_at?: string
+          user_id: string
+        }
+        Update: {
+          game_id?: string
+          played_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_plays_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          aspect_ratio: number
+          category: string
+          created_at: string
+          description: string
+          embed_url: string
+          enabled: boolean
+          id: string
+          official_url: string | null
+          slug: string
+          sort_order: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          aspect_ratio?: number
+          category: string
+          created_at?: string
+          description?: string
+          embed_url: string
+          enabled?: boolean
+          id?: string
+          official_url?: string | null
+          slug: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          aspect_ratio?: number
+          category?: string
+          created_at?: string
+          description?: string
+          embed_url?: string
+          enabled?: boolean
+          id?: string
+          official_url?: string | null
+          slug?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           content: string | null
@@ -916,6 +1016,24 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       workspace_files: {
         Row: {
           created_at: string
@@ -967,10 +1085,17 @@ export type Database = {
     Functions: {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       chess_cleanup_lobbies: { Args: never; Returns: number }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_pro: { Args: { _user: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1097,6 +1222,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

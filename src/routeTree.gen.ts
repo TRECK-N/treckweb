@@ -27,6 +27,7 @@ import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
 import { Route as AuthenticatedGames2048RouteImport } from './routes/_authenticated/games.2048'
+import { Route as AuthenticatedGamesAdminRouteImport } from './routes/_authenticated/games.admin'
 import { Route as AuthenticatedGamesMemoryRouteImport } from './routes/_authenticated/games.memory'
 import { Route as AuthenticatedGamesMinesweeperRouteImport } from './routes/_authenticated/games.minesweeper'
 import { Route as AuthenticatedGamesSnakeRouteImport } from './routes/_authenticated/games.snake'
@@ -35,6 +36,7 @@ import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedStudyIndexRouteImport } from './routes/_authenticated/study.index'
 import { Route as AuthenticatedGamesChessIndexRouteImport } from './routes/_authenticated/games.chess.index'
 import { Route as AuthenticatedGamesChessLobbyIdRouteImport } from './routes/_authenticated/games.chess.$lobbyId'
+import { Route as AuthenticatedGamesPlaySlugRouteImport } from './routes/_authenticated/games.play.$slug'
 import { Route as AuthenticatedStudyDeckDeckIdRouteImport } from './routes/_authenticated/study.deck.$deckId'
 import { Route as AuthenticatedStudyQuizQuizIdRouteImport } from './routes/_authenticated/study.quiz.$quizId'
 
@@ -127,6 +129,11 @@ const AuthenticatedGames2048Route = AuthenticatedGames2048RouteImport.update({
   path: '/games/2048',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGamesAdminRoute = AuthenticatedGamesAdminRouteImport.update({
+  id: '/games/admin',
+  path: '/games/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGamesMemoryRoute =
   AuthenticatedGamesMemoryRouteImport.update({
     id: '/games/memory',
@@ -173,6 +180,12 @@ const AuthenticatedGamesChessLobbyIdRoute =
     path: '/games/chess/$lobbyId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGamesPlaySlugRoute =
+  AuthenticatedGamesPlaySlugRouteImport.update({
+    id: '/games/play/$slug',
+    path: '/games/play/$slug',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStudyDeckDeckIdRoute =
   AuthenticatedStudyDeckDeckIdRouteImport.update({
     id: '/study/deck/$deckId',
@@ -202,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/api/webu-command': typeof ApiWebuCommandRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/2048': typeof AuthenticatedGames2048Route
+  '/games/admin': typeof AuthenticatedGamesAdminRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
@@ -211,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/study/': typeof AuthenticatedStudyIndexRoute
   '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/games/play/$slug': typeof AuthenticatedGamesPlaySlugRoute
   '/study/deck/$deckId': typeof AuthenticatedStudyDeckDeckIdRoute
   '/study/quiz/$quizId': typeof AuthenticatedStudyQuizQuizIdRoute
   '/games/chess/': typeof AuthenticatedGamesChessIndexRoute
@@ -230,6 +245,7 @@ export interface FileRoutesByTo {
   '/api/webu-command': typeof ApiWebuCommandRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/games/2048': typeof AuthenticatedGames2048Route
+  '/games/admin': typeof AuthenticatedGamesAdminRoute
   '/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/games/snake': typeof AuthenticatedGamesSnakeRoute
@@ -239,6 +255,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesIndexRoute
   '/study': typeof AuthenticatedStudyIndexRoute
   '/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/games/play/$slug': typeof AuthenticatedGamesPlaySlugRoute
   '/study/deck/$deckId': typeof AuthenticatedStudyDeckDeckIdRoute
   '/study/quiz/$quizId': typeof AuthenticatedStudyQuizQuizIdRoute
   '/games/chess': typeof AuthenticatedGamesChessIndexRoute
@@ -261,6 +278,7 @@ export interface FileRoutesById {
   '/api/webu-command': typeof ApiWebuCommandRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/_authenticated/games/2048': typeof AuthenticatedGames2048Route
+  '/_authenticated/games/admin': typeof AuthenticatedGamesAdminRoute
   '/_authenticated/games/memory': typeof AuthenticatedGamesMemoryRoute
   '/_authenticated/games/minesweeper': typeof AuthenticatedGamesMinesweeperRoute
   '/_authenticated/games/snake': typeof AuthenticatedGamesSnakeRoute
@@ -270,6 +288,7 @@ export interface FileRoutesById {
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/study/': typeof AuthenticatedStudyIndexRoute
   '/_authenticated/games/chess/$lobbyId': typeof AuthenticatedGamesChessLobbyIdRoute
+  '/_authenticated/games/play/$slug': typeof AuthenticatedGamesPlaySlugRoute
   '/_authenticated/study/deck/$deckId': typeof AuthenticatedStudyDeckDeckIdRoute
   '/_authenticated/study/quiz/$quizId': typeof AuthenticatedStudyQuizQuizIdRoute
   '/_authenticated/games/chess/': typeof AuthenticatedGamesChessIndexRoute
@@ -292,6 +311,7 @@ export interface FileRouteTypes {
     | '/api/webu-command'
     | '/ai/$threadId'
     | '/games/2048'
+    | '/games/admin'
     | '/games/memory'
     | '/games/minesweeper'
     | '/games/snake'
@@ -301,6 +321,7 @@ export interface FileRouteTypes {
     | '/messages/'
     | '/study/'
     | '/games/chess/$lobbyId'
+    | '/games/play/$slug'
     | '/study/deck/$deckId'
     | '/study/quiz/$quizId'
     | '/games/chess/'
@@ -320,6 +341,7 @@ export interface FileRouteTypes {
     | '/api/webu-command'
     | '/ai/$threadId'
     | '/games/2048'
+    | '/games/admin'
     | '/games/memory'
     | '/games/minesweeper'
     | '/games/snake'
@@ -329,6 +351,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/study'
     | '/games/chess/$lobbyId'
+    | '/games/play/$slug'
     | '/study/deck/$deckId'
     | '/study/quiz/$quizId'
     | '/games/chess'
@@ -350,6 +373,7 @@ export interface FileRouteTypes {
     | '/api/webu-command'
     | '/_authenticated/ai/$threadId'
     | '/_authenticated/games/2048'
+    | '/_authenticated/games/admin'
     | '/_authenticated/games/memory'
     | '/_authenticated/games/minesweeper'
     | '/_authenticated/games/snake'
@@ -359,6 +383,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages/'
     | '/_authenticated/study/'
     | '/_authenticated/games/chess/$lobbyId'
+    | '/_authenticated/games/play/$slug'
     | '/_authenticated/study/deck/$deckId'
     | '/_authenticated/study/quiz/$quizId'
     | '/_authenticated/games/chess/'
@@ -502,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGames2048RouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/games/admin': {
+      id: '/_authenticated/games/admin'
+      path: '/games/admin'
+      fullPath: '/games/admin'
+      preLoaderRoute: typeof AuthenticatedGamesAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/games/memory': {
       id: '/_authenticated/games/memory'
       path: '/games/memory'
@@ -558,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGamesChessLobbyIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/games/play/$slug': {
+      id: '/_authenticated/games/play/$slug'
+      path: '/games/play/$slug'
+      fullPath: '/games/play/$slug'
+      preLoaderRoute: typeof AuthenticatedGamesPlaySlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/study/deck/$deckId': {
       id: '/_authenticated/study/deck/$deckId'
       path: '/study/deck/$deckId'
@@ -600,6 +639,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
   AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
   AuthenticatedGames2048Route: typeof AuthenticatedGames2048Route
+  AuthenticatedGamesAdminRoute: typeof AuthenticatedGamesAdminRoute
   AuthenticatedGamesMemoryRoute: typeof AuthenticatedGamesMemoryRoute
   AuthenticatedGamesMinesweeperRoute: typeof AuthenticatedGamesMinesweeperRoute
   AuthenticatedGamesSnakeRoute: typeof AuthenticatedGamesSnakeRoute
@@ -607,6 +647,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
   AuthenticatedStudyIndexRoute: typeof AuthenticatedStudyIndexRoute
   AuthenticatedGamesChessLobbyIdRoute: typeof AuthenticatedGamesChessLobbyIdRoute
+  AuthenticatedGamesPlaySlugRoute: typeof AuthenticatedGamesPlaySlugRoute
   AuthenticatedStudyDeckDeckIdRoute: typeof AuthenticatedStudyDeckDeckIdRoute
   AuthenticatedStudyQuizQuizIdRoute: typeof AuthenticatedStudyQuizQuizIdRoute
   AuthenticatedGamesChessIndexRoute: typeof AuthenticatedGamesChessIndexRoute
@@ -622,6 +663,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
   AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
   AuthenticatedGames2048Route: AuthenticatedGames2048Route,
+  AuthenticatedGamesAdminRoute: AuthenticatedGamesAdminRoute,
   AuthenticatedGamesMemoryRoute: AuthenticatedGamesMemoryRoute,
   AuthenticatedGamesMinesweeperRoute: AuthenticatedGamesMinesweeperRoute,
   AuthenticatedGamesSnakeRoute: AuthenticatedGamesSnakeRoute,
@@ -629,6 +671,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
   AuthenticatedStudyIndexRoute: AuthenticatedStudyIndexRoute,
   AuthenticatedGamesChessLobbyIdRoute: AuthenticatedGamesChessLobbyIdRoute,
+  AuthenticatedGamesPlaySlugRoute: AuthenticatedGamesPlaySlugRoute,
   AuthenticatedStudyDeckDeckIdRoute: AuthenticatedStudyDeckDeckIdRoute,
   AuthenticatedStudyQuizQuizIdRoute: AuthenticatedStudyQuizQuizIdRoute,
   AuthenticatedGamesChessIndexRoute: AuthenticatedGamesChessIndexRoute,
