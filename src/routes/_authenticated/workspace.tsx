@@ -125,6 +125,8 @@ function Workspace() {
   };
 
   const q = search.trim().toLowerCase();
+  const [kindFilter, setKindFilter] = useState<"all" | "note" | "file" | "deck" | "quiz">("all");
+  const [sortBy, setSortBy] = useState<"name" | "name-desc" | "type">("name");
   const items: UniverseItem[] = useMemo(() => {
     const list: UniverseItem[] = [
       ...notes.map((n) => ({ id: n.id, name: n.title || "Untitled note", kind: "note" as const })),
@@ -132,8 +134,10 @@ function Workspace() {
       ...decks.map((d) => ({ id: d.id, name: d.title, kind: "deck" as const })),
       ...quizzes.map((z) => ({ id: z.id, name: z.title, kind: "quiz" as const })),
     ];
-    return q ? list.filter((i) => i.name.toLowerCase().includes(q)) : list;
-  }, [notes, files, decks, quizzes, q]);
+    const out = list.filter((i) => (!q || i.name.toLowerCase().includes(q)) && (kindFilter === "all" || i.kind === kindFilter));
+    out.sort((a, b) => sortBy === "name-desc" ? b.name.localeCompare(a.name) : sortBy === "type" ? a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+    return out;
+  }, [notes, files, decks, quizzes, q, kindFilter, sortBy]);
 
   /* ---------- folder actions ---------- */
   const createFolder = async (parentId: string | null) => {
@@ -240,6 +244,14 @@ function Workspace() {
           </div>
         )}
 
+        <select value={kindFilter} onChange={(e) => setKindFilter(e.target.value as typeof kindFilter)} aria-label="Filter by type"
+          className="rounded-xl border border-border bg-background/40 px-2 py-2 text-xs outline-none focus:border-primary">
+          <option value="all">All types</option><option value="note">Notes</option><option value="file">Files</option><option value="deck">Flashcards</option><option value="quiz">Quizzes</option>
+        </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} aria-label="Sort"
+          className="rounded-xl border border-border bg-background/40 px-2 py-2 text-xs outline-none focus:border-primary">
+          <option value="name">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="type">Type</option>
+        </select>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter items…"
