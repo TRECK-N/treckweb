@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 /** Pages Webu is allowed to open. */
-const PAGES = ["dashboard", "ai", "chat", "workspace", "study", "games", "music", "membership", "settings"] as const;
+const PAGES = ["dashboard", "ai", "chat", "workspace", "study", "games", "chess", "music", "membership", "settings"] as const;
 
 const commandSchema = z.object({
   action: z.enum(["navigate", "search", "answer"]),
