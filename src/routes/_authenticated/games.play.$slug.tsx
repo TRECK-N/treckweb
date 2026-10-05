@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Maximize2, RotateCw, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { buildEmbedUrl, isApprovedEmbed, type GameRow } from "@/lib/games";
+import { checkGameDistributionDomain } from "@/lib/game-embed.functions";
 
 export const Route = createFileRoute("/_authenticated/games/play/$slug")({
   head: () => ({
@@ -34,6 +35,15 @@ function PlayPage() {
       return data as GameRow | null;
     },
   });
+
+  const gdId = game?.embed_url.match(/html5\.gamedistribution\.com\/([a-f0-9]{32})/)?.[1];
+  const permission = useQuery({
+    queryKey: ["gd-permission", gdId],
+    enabled: !!gdId,
+    staleTime: 5 * 60_000,
+    queryFn: () => checkGameDistributionDomain({ data: { gameId: gdId!, domain: window.location.hostname } }),
+  });
+  const blocked = permission.data?.status === "blocked";
 
   const src = useMemo(() => (game && isApprovedEmbed(game.embed_url) ? buildEmbedUrl(game) : null), [game]);
 
@@ -74,7 +84,14 @@ function PlayPage() {
 
       <div ref={frameWrap} className="holo-panel relative mx-auto w-full overflow-hidden rounded-2xl bg-background"
         style={{ aspectRatio: String(game.aspect_ratio || 1.6), maxHeight: "calc(100vh - 11rem)" }}>
-        {!src ? (
+        {gdId && permission.isLoading ? (
+          <div className="absolute inset-0 grid place-items-center text-sm text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+        ) : blocked ? (
+          <div className="absolute inset-0 grid place-items-center">
+            <Fallback official={official} title="This game isn't allowed on WebuWeb yet"
+              text={`GameDistribution only lets this game run on websites it has approved, and ${typeof window !== "undefined" ? window.location.hostname : "this site"} isn't approved yet. WebuWeb can't change that itself. Becoming a GameDistribution publisher and registering this website should allow the game to run here.`} />
+          </div>
+        ) : !src ? (
           <Fallback official={official} text="This game's embed link isn't from an approved provider." />
         ) : (
           <>
@@ -97,10 +114,11 @@ function PlayPage() {
   );
 }
 
-function Fallback({ official, text, onDismiss }: { official?: string | null; text: string; onDismiss?: () => void }) {
+function Fallback({ official, text, title, onDismiss }: { official?: string | null; text: string; title?: string; onDismiss?: () => void }) {
   return (
-    <div className="flex max-w-sm flex-col items-center gap-3 p-6 text-center text-sm">
+    <div className="flex max-w-md flex-col items-center gap-3 p-6 text-center text-sm">
       <AlertTriangle className="h-6 w-6 text-destructive" />
+      {title && <p className="text-base font-semibold">{title}</p>}
       <p className="text-muted-foreground">{text}</p>
       <div className="flex gap-2">
         {official && <a href={official} target="_blank" rel="noopener noreferrer" className="rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground">Open official game</a>}
